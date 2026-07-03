@@ -33,8 +33,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Build dashboard
+      - name: Build dashboard in static demo mode (no token gate)
         working-directory: understand-dashboard
+        env:
+          VITE_DEMO_MODE: "true"
         run: |
           npm ci
           npx vite build --base=/agentdef/dashboard/ --outDir ../_site/dashboard --emptyOutDir
