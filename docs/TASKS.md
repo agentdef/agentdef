@@ -2,11 +2,11 @@
 
 > **Status 2026-07-03:** Phases 1–4 executed in one working session (see CHANGELOG "Unreleased"). ✅ = done+tested here; 🟡 = built here, remainder needs the maintainer's accounts/network (steps in RELEASING.md / each task note); ⬜ = needs humans. Suite: 239 tests.
 
-Companion to [ROADMAP.md](ROADMAP.md). Every task has a **Test** — the concrete check that proves the task is done. A task without a passing test is not done. Tasks are numbered `P<phase>.<n>`; order within a phase is dependency order.
+Companion to [ROADMAP.md](https://github.com/agentdef/agentdef/blob/main/ROADMAP.md). Every task has a **Test** — the concrete check that proves the task is done. A task without a passing test is not done. Tasks are numbered `P<phase>.<n>`; order within a phase is dependency order.
 
 Conventions used below:
 
-- "Suite green" = `python -m pytest validation/tests importers/tests adapters/tests -v` passes (adapters/tests to be created in P1.2).
+- "Suite green" = `python -m pytest tests -v` passes (adapters/tests to be created in P1.2).
 - "Clean-machine test" = fresh venv or container with no repo checkout on the path.
 - Corpus paths refer to the local clones in `downloads/` (awesome-copilot, awesome-copilot-studio-agents, awesome-claude-agents, awesome-claude-code-subagents).
 

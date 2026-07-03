@@ -1,6 +1,6 @@
 # AgentDef — Portable AI Agent Definitions
 
-> **Renamed:** this project was **Agentfile** until 2026-07-03; it is now **AgentDef** (`agentdef`) per the availability study in [NAMING.md](NAMING.md).
+> **Renamed:** this project was **Agentfile** until 2026-07-03; it is now **AgentDef** (`agentdef`) per the availability study in [the naming study](docs/NAMING.md).
 
 > Define your agent once. Run it on any framework.
 
@@ -34,25 +34,22 @@ Copy the [starter template](templates/starter/) and fill in your content.
 
 ## CLI
 
-Install the `agentdef` command (editable install from this directory):
-
 ```bash
-pip install -e .
+pip install agentdef
 ```
 
 ```bash
+agentdef init my-agent --yes                 # scaffold a valid agent
 agentdef validate ./my-agent/
 agentdef adapt claude ./my-agent/ --output CLAUDE.md
-agentdef import copilotstudio risk-register-manager.md --output ./my-agent/
-agentdef list        # show every available adapter/importer framework
+agentdef import copilotstudio agent-doc.md --output ./my-agent/
+agentdef sync ./my-agent/                    # regenerate all configured framework files
+agentdef list                                # every adapter/importer framework
 ```
 
-The CLI is a thin wrapper around the same `validation/`, `adapters/`, and
-`importers/` scripts documented below — use whichever is more convenient.
-It currently only works from an editable install of this git checkout (it
-resolves its sibling `adapters/`/`importers/`/`validation/` directories at
-runtime); a fully self-contained PyPI package is planned, see
-[PUBLISHING.md](PUBLISHING.md).
+The `agentdef` package is fully self-contained (adapters, importers,
+validator, and JSON Schemas ship inside the wheel). For development, use an
+editable install from a checkout: `pip install -e .`
 
 ## Keep framework files in sync
 
@@ -146,7 +143,7 @@ Read the full spec: [spec/SPEC.md](spec/SPEC.md)
 
 ## Status
 
-See **[STATUS.md](STATUS.md)** for the live "what's done / what's next" picture.
+See **[STATUS](docs/STATUS.md)** for the live "what's done / what's next" picture.
 
 **Spec 0.5.0, tooling 0.2.0** — pre-release, feature-complete for v0.2.0; publication steps pending. Draft specification. The format is stable enough for experimentation and feedback. Breaking changes are possible before 1.0.
 

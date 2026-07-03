@@ -34,7 +34,7 @@ jobs:
         run: pip install dist/*.whl pytest
 
       - name: Run test suite
-        run: pytest validation/tests importers/tests adapters/tests tests -v
+        run: pytest tests -v
 
       - name: CLI smoke test
         run: |

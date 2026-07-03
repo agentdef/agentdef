@@ -52,4 +52,5 @@ include = ["agentdef*"]
 agentdef = ["schemas/*.json", "validation/requirements.txt"]
 
 [tool.pytest.ini_options]
-testpaths = ["validation/tests", "importers/tests", "tests"]
+testpaths = ["tests"]
+pythonpath = ["pysrc"]

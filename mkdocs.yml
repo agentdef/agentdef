@@ -13,6 +13,7 @@ nav:
       - Cursor: migrations/cursor.md
       - AGENTS.md: migrations/openai.md
       - Any prompt file: migrations/generic.md
+  - Dashboard (live): https://agentdef.github.io/agentdef/dashboard/
   - Scorecard: scorecard.md
   - Gallery: gallery.md
   - Comparisons: comparisons.md
@@ -20,3 +21,8 @@ nav:
   - FAQ: faq.md
   - Azure mapping: azure-mapping.md
   - Dashboard tour: dashboard-tour.md
+  - Project:
+      - Status: STATUS.md
+      - Tasks: TASKS.md
+      - Releasing: RELEASING.md
+      - Naming decision: NAMING.md

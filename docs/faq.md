@@ -76,7 +76,7 @@ Importers exist for Claude (`CLAUDE.md` and Claude Code subagent files), GitHub 
 
 ### Is there a single command-line tool, or do I have to call each script separately?
 
-Use the `agentdef` CLI (`pip install agentdef`, or `pip install -e .` from a checkout): `agentdef validate`, `agentdef adapt <framework>`, `agentdef import <framework>`, `agentdef sync`, `agentdef init`, and `agentdef list` to see every supported framework. The old per-script entry points (`adapters/<fw>/generate.py`, `importers/<fw>/import.py`, `validation/validate.py`) still run as deprecated wrappers for one release.
+Use the `agentdef` CLI (`pip install agentdef`, or `pip install -e .` from a checkout): `agentdef validate`, `agentdef adapt <framework>`, `agentdef import <framework>`, `agentdef sync`, `agentdef init`, and `agentdef list` to see every supported framework.
 
 ## Design
 

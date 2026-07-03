@@ -10,6 +10,7 @@ exercise the actual documented CLI usage.
 """
 
 import importlib.util
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -30,16 +31,19 @@ def _load(path: Path, name: str):
 class TestRoundTrip:
     def test_mission_writer_round_trip(self, tmp_path):
         claude_md = tmp_path / "CLAUDE.md"
+        env = {**os.environ, "PYTHONPATH": str(ROOT / "pysrc")}
         subprocess.run(
             [
                 sys.executable,
-                str(ROOT / "adapters" / "claude" / "generate.py"),
+                "-m",
+                "agentdef.adapters.claude.generate",
                 str(ROOT / "examples" / "mission-writer"),
                 "--output",
                 str(claude_md),
             ],
             check=True,
             cwd=str(ROOT),
+            env=env,
         )
         assert claude_md.exists()
 
@@ -47,13 +51,15 @@ class TestRoundTrip:
         subprocess.run(
             [
                 sys.executable,
-                str(ROOT / "importers" / "claude" / "import.py"),
+                "-m",
+                "agentdef.importers.claude.importer",
                 str(claude_md),
                 "--output",
                 str(out_dir),
             ],
             check=True,
             cwd=str(ROOT),
+            env=env,
         )
 
         result = validate(str(out_dir))

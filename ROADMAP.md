@@ -2,10 +2,10 @@
 
 Goal: make AgentDef the default, framework-agnostic way to define AI agents — the format people reach for first, and the format frameworks import and export natively.
 
-> **Naming (2026-07-03):** the rename to **AgentDef** is executed — code, directories, classes, and the `agentdef` CLI all use the final name (decision record: [NAMING.md](NAMING.md)).
-Day-to-day execution state lives in [STATUS.md](STATUS.md); this document is the strategy.
+> **Naming (2026-07-03):** the rename to **AgentDef** is executed — code, directories, classes, and the `agentdef` CLI all use the final name (decision record: [NAMING.md](docs/NAMING.md)).
+Day-to-day execution state lives in [STATUS.md](docs/STATUS.md); this document is the strategy.
 
-This roadmap is ordered by dependency, not by calendar. Each phase has an explicit exit criterion; a phase is done when its criterion is verifiably true, not when its tasks are merely attempted. The companion [TASKS.md](TASKS.md) breaks every phase into concrete development tasks with tests.
+This roadmap is ordered by dependency, not by calendar. Each phase has an explicit exit criterion; a phase is done when its criterion is verifiably true, not when its tasks are merely attempted. The companion [TASKS.md](docs/TASKS.md) breaks every phase into concrete development tasks with tests.
 
 ---
 
@@ -19,7 +19,7 @@ This roadmap is ordered by dependency, not by calendar. Each phase has an explic
 - **CLI**: validate / adapt / import / list / **sync** (drift check for CI) / **init**
 - **239-test suite** incl. golden files, conformance driver, fixed-point tests (which found and fixed 3 real bugs), fuzz over non-agent inputs; scorecard: 505 real corpus files, 0 failures
 - **DX**: GitHub Action, pre-commit hooks, VS Code extension v0, mkdocs site (strict-link green), migration guides, agent gallery
-- Naming decision resolved: **AgentDef** ([NAMING.md](NAMING.md)); `agentdef` live on PyPI (0.0.1 placeholder), GitHub org created
+- Naming decision resolved: **AgentDef** ([NAMING.md](docs/NAMING.md)); `agentdef` live on PyPI (0.0.1 placeholder), GitHub org created
 
 **Not done:**
 
@@ -103,7 +103,7 @@ This roadmap is ordered by dependency, not by calendar. Each phase has an explic
 | Risk | Mitigation |
 | ---- | ---------- |
 | `agentdef` names get squatted before we register them | Register PyPI/npm/GitHub same-day with the P1.1 rename — availability verified 2026-07-02, treat as perishable |
-| Confusion with same-space neighbors (AgentSpec×3, Agentfile×2, AgentSchema) | [NAMING.md](NAMING.md) chose a collision-free name; comparisons doc addresses neighbors head-on (Phase 1 task 5) |
+| Confusion with same-space neighbors (AgentSpec×3, Agentfile×2, AgentSchema) | [NAMING.md](docs/NAMING.md) chose a collision-free name; comparisons doc addresses neighbors head-on (Phase 1 task 5) |
 | A big vendor ships a competing "standard" | Speed to Phase 3 breadth + neutrality stance + interop bridges (Phase 5) |
 | Spec churn burns early adopters | Conformance corpus + migration notes from Phase 2 onward; freeze at 1.0 |
 | Single-maintainer bus factor | Governance work starts in Phase 5 but contributor docs are already in place; keep PR-sized changes and honest history |

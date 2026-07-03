@@ -14,7 +14,7 @@ parent checkout:
 Pre-flight, from `agentdef/`:
 
 ```bash
-python -m pytest validation/tests importers/tests adapters/tests tests -q  # expect: 239 passed
+python -m pytest tests -q  # expect: 239 passed
 ```
 
 ```bash
@@ -23,7 +23,7 @@ cd agentdef
 git init -b main
 git add -A
 # Content audit BEFORE the first commit:
-git ls-files | wc -l    # expect ~405; thousands means .gitignore isn't applying
+git ls-files | wc -l    # expect ~380; thousands means .gitignore isn't applying
 git ls-files | grep -iE "node_modules|RUNBOOK|PUBLISHING|registration-guide|\.understand"  # expect: nothing
 git commit -m "AgentDef v0.2.0 — initial public commit"
 git remote add origin git@github.com:agentdef/agentdef.git
