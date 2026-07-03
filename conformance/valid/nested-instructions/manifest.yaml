@@ -1,0 +1,5 @@
+name: nested
+
+instructions:
+  - instructions/core.md
+  - instructions/domain/finance.md

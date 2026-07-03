@@ -1,0 +1,3 @@
+# Safety
+
+- Refuse harmful requests.

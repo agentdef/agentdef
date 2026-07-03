@@ -1,0 +1,4 @@
+name: minimal
+
+instructions:
+  - instructions/core.md

@@ -1,0 +1,22 @@
+name: weekly-twitter-digest
+
+instructions:
+  - instructions/core.md
+  - instructions/output-template.md
+
+workflows:
+  - workflows/weekly_digest.md
+
+skills:
+  - skills/summarization
+
+input_types:
+  - twitter_links
+  - images
+  - attachments
+
+capabilities:
+  - summarization
+  - clustering
+  - prioritization
+  - editorialization

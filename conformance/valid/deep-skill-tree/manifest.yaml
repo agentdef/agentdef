@@ -1,0 +1,7 @@
+name: deep-skill
+
+instructions:
+  - instructions/core.md
+
+skills:
+  - skills/classify

@@ -1,0 +1,7 @@
+name: x
+
+instructions:
+  - instructions/core.md
+
+tools:
+  - tools/ghost.yaml

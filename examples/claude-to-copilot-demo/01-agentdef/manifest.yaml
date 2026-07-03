@@ -1,0 +1,13 @@
+name: code-reviewer
+version: 0.1.0
+description: Reviews pull requests for correctness, security, and maintainability
+  before merge.
+instructions:
+- instructions/core.md
+- instructions/safety.md
+x-claude-tools: read_file, grep, run_tests
+x-claude-frontmatter:
+  model: sonnet
+x-imported-from:
+  framework: claude
+  source_file: examples/claude-to-copilot-demo/00-source-claude-subagent.md

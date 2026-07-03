@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+
+# Temporary
+tmp_adapter_check/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+# --- Public-repo exclusions (decided 2026-07-03) ---
+# JS deps + build outputs
+node_modules/
+site/
+# Architecture scan data: local-only (the dashboard ships its own copy in
+# understand-dashboard/public/knowledge-graph.json, regenerated 2026-07-04
+# against pysrc/). Dashboard SOURCE is published; deps/builds are not.
+.understand-anything/
+understand-dashboard/dist/
+# Maintainer-private runbooks (live in the private monorepo only)
+RUNBOOK.md
+PUBLISHING.md
+docs/registration-guide.md
+# FUSE probe junk (delete from Windows when convenient)
+_probe.txt
+probe2.txt
+_p.txt

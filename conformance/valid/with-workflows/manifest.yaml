@@ -1,0 +1,7 @@
+name: with-workflows
+
+instructions:
+  - instructions/core.md
+
+workflows:
+  - workflows/run.md

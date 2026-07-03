@@ -1,0 +1,38 @@
+name: "AgentDef validate & drift check"
+description: "Validate AgentDef agent directories and fail when generated framework files are stale (agentdef sync --check)."
+branding:
+  icon: check-circle
+  color: purple
+inputs:
+  agent-dirs:
+    description: "Space-separated agent directories to validate."
+    required: true
+  sync-check:
+    description: "Also run `agentdef sync --check` on each directory (true/false)."
+    required: false
+    default: "true"
+  version:
+    description: "agentdef version to install from PyPI (default: latest)."
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Install agentdef
+      shell: bash
+      run: pip install "agentdef${{ inputs.version && format('=={0}', inputs.version) || '' }}"
+    - name: Validate agents
+      shell: bash
+      run: |
+        for dir in ${{ inputs.agent-dirs }}; do
+          agentdef validate "$dir"
+        done
+    - name: Drift check
+      if: inputs.sync-check == 'true'
+      shell: bash
+      run: |
+        for dir in ${{ inputs.agent-dirs }}; do
+          if grep -q "^sync:" "$dir/manifest.yaml" 2>/dev/null; then
+            agentdef sync "$dir" --check
+          fi
+        done

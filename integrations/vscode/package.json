@@ -1,0 +1,25 @@
+{
+  "name": "agentdef-vscode",
+  "displayName": "AgentDef",
+  "description": "Schema-backed editing, validation, and sync for AgentDef agent definitions.",
+  "version": "0.1.0",
+  "publisher": "agentdef",
+  "license": "Apache-2.0",
+  "repository": { "type": "git", "url": "https://github.com/agentdef/agentdef" },
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Linters", "Other"],
+  "activationEvents": ["workspaceContains:**/manifest.yaml"],
+  "main": "./extension.js",
+  "contributes": {
+    "yamlValidation": [
+      { "fileMatch": "manifest.yaml", "url": "./schemas/manifest.schema.json" },
+      { "fileMatch": "tools/mcp.yaml", "url": "./schemas/mcp.schema.json" }
+    ],
+    "commands": [
+      { "command": "agentdef.validate", "title": "AgentDef: Validate agent directory" },
+      { "command": "agentdef.sync", "title": "AgentDef: Sync framework files" },
+      { "command": "agentdef.adapt", "title": "AgentDef: Adapt to framework..." }
+    ]
+  },
+  "extensionDependencies": ["redhat.vscode-yaml"]
+}

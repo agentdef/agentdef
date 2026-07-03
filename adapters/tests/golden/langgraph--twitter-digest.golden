@@ -1,0 +1,98 @@
+"""
+weekly-twitter-digest — LangGraph Agent
+
+Generated from AgentDef. Customize the node implementations.
+"""
+
+from typing import TypedDict
+
+from langgraph.graph import StateGraph, END
+
+
+# --- State ---
+
+class AgentState(TypedDict):
+    """State passed between graph nodes."""
+    input: str
+    output: str
+    context: dict
+
+
+SYSTEM_PROMPT = """You are an editorial AI agent specialized in transforming large batches of saved Twitter/X links into concise, professional, shareable weekly briefings."""
+
+
+# --- Nodes ---
+
+def ingestion(state: AgentState) -> AgentState:
+    """TODO: Implement ingestion logic."""
+    return state
+
+
+def content_extraction(state: AgentState) -> AgentState:
+    """TODO: Implement content_extraction logic."""
+    return state
+
+
+def filtering(state: AgentState) -> AgentState:
+    """TODO: Implement filtering logic."""
+    return state
+
+
+def topic_clustering(state: AgentState) -> AgentState:
+    """TODO: Implement topic_clustering logic."""
+    return state
+
+
+def prioritization(state: AgentState) -> AgentState:
+    """TODO: Implement prioritization logic."""
+    return state
+
+
+def editorial_synthesis(state: AgentState) -> AgentState:
+    """TODO: Implement editorial_synthesis logic."""
+    return state
+
+
+def final_report(state: AgentState) -> AgentState:
+    """TODO: Implement final_report logic."""
+    return state
+
+
+def summarization(state: AgentState) -> AgentState:
+    """Skill: summarization. TODO: Implement."""
+    return state
+
+
+# --- Graph ---
+
+def build_graph() -> StateGraph:
+    """Construct the agent execution graph."""
+    graph = StateGraph(AgentState)
+
+    graph.add_node("ingestion", ingestion)
+    graph.add_node("content_extraction", content_extraction)
+    graph.add_node("filtering", filtering)
+    graph.add_node("topic_clustering", topic_clustering)
+    graph.add_node("prioritization", prioritization)
+    graph.add_node("editorial_synthesis", editorial_synthesis)
+    graph.add_node("final_report", final_report)
+    graph.add_node("summarization", summarization)
+
+    graph.set_entry_point("ingestion")
+    graph.add_edge("ingestion", "content_extraction")
+    graph.add_edge("content_extraction", "filtering")
+    graph.add_edge("filtering", "topic_clustering")
+    graph.add_edge("topic_clustering", "prioritization")
+    graph.add_edge("prioritization", "editorial_synthesis")
+    graph.add_edge("editorial_synthesis", "final_report")
+    graph.add_edge("final_report", "summarization")
+    graph.add_edge("summarization", END)
+
+    return graph
+
+
+if __name__ == "__main__":
+    g = build_graph()
+    app = g.compile()
+    result = app.invoke({"input": "", "output": "", "context": {}})
+    print(result["output"])

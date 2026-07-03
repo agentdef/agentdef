@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentdef.org/schemas/manifest.schema.json",
+  "title": "AgentDef Manifest",
+  "description": "Schema for the manifest.yaml composition layer of an AgentDef agent.",
+  "type": "object",
+  "required": [
+    "name",
+    "instructions"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for the agent.",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the agent definition (e.g. \"0.1.0\").",
+      "pattern": "^\\d+\\.\\d+\\.\\d+.*$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short human-readable description of what the agent does."
+    },
+    "instructions": {
+      "type": "array",
+      "description": "List of instruction file paths relative to the agent root.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "skills": {
+      "type": "array",
+      "description": "List of skill directory paths relative to the agent root.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "description": "List of workflow file paths relative to the agent root.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tools": {
+      "type": "array",
+      "description": "List of tool definition file paths relative to the agent root.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "input_types": {
+      "type": "array",
+      "description": "Types of input the agent accepts.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "High-level capabilities the agent provides.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "spec_version": {
+      "type": [
+        "string",
+        "number"
+      ],
+      "description": "AgentDef spec version this agent targets (e.g. '0.5'). Optional; omitting it implies the oldest version the validating tool supports."
+    }
+  },
+  "additionalProperties": true
+}

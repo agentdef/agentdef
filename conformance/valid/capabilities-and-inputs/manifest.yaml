@@ -1,0 +1,9 @@
+name: capable
+
+instructions:
+  - instructions/core.md
+
+capabilities:
+  - summarization
+input_types:
+  - markdown

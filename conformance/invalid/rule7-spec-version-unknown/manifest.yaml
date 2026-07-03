@@ -1,0 +1,6 @@
+name: x
+
+instructions:
+  - instructions/core.md
+
+spec_version: '99.0'

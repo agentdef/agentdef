@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/agentdef/agentdef/blob/main/pysrc/agentdef/schemas/mcp.schema.json",
+  "title": "AgentDef MCP tool declaration (tools/mcp.yaml)",
+  "type": "object",
+  "required": [
+    "servers"
+  ],
+  "properties": {
+    "servers": {
+      "type": "object",
+      "description": "MCP servers this agent expects, keyed by server name.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "stdio server launch command"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "HTTP/SSE server URL"
+          },
+          "env": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "names of required environment variables (never values/secrets)"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "command"
+            ]
+          },
+          {
+            "required": [
+              "url"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,5288 @@
+{
+ "version": "1.0.0",
+ "project": {
+  "name": "agentdef",
+  "languages": [
+   "python",
+   "markdown",
+   "json",
+   "txt"
+  ],
+  "frameworks": [],
+  "description": "Portable AI agent definitions \u2014 validate, adapt, and import agent specs across frameworks (Claude, OpenAI, OpenAI Assistants, Cursor, GitHub Copilot, Microsoft 365 Copilot, Copilot Studio, LangGraph, CrewAI, Letta). This is the installable agentdef Python package (pysrc/agentdef/), renamed from AgentSpec on 2026-07-03.",
+  "analyzedAt": "2026-07-03T22:05:27Z",
+  "gitCommitHash": "66af525932befd33b101a2226bfa4c608710c4bc"
+ },
+ "nodes": [
+  {
+   "id": "file:agentdef/importers/_common.py",
+   "type": "file",
+   "name": "_common.py",
+   "filePath": "agentdef/importers/_common.py",
+   "summary": "Shared internal library for all AgentDef reverse importers: YAML-frontmatter parsing (with a lenient fallback for malformed scalars), a markdown section splitter/classifier, round-trip segment splitting for previously-generated AgentDef output, persona-sentence and bullet extraction, a generic best-effort markdown-to-AgentDef classifier (generic_markdown_import), an ImportReport that records mapped/inferred/dropped fields per the framework-import skill's rules, and the AgentDefWriter class that assembles and writes a conformant AgentDef directory (agent.md, manifest.yaml, instructions/, skills/, workflows/, tools/, knowledge/, runtime/, IMPORT_REPORT.md).",
+   "tags": [
+    "importers",
+    "shared-utilities",
+    "markdown-parsing",
+    "frontmatter",
+    "writer",
+    "round-trip"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Centralizes logic that used to be duplicated across the copilot/copilotstudio/claude importers (see module docstring: a frontmatter-parsing bug 'survived in two of the three copies for a while'). split_roundtrip_segments is new versus the pre-rename version of this module: it fence-aware-splits an AgentDef-generated body on '---' separators, added to fix a real bug found by the P2.4 fixed-point corpus tests where a naive split broke on YAML frontmatter examples embedded in fenced code blocks."
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:_lenient_frontmatter_parse",
+   "type": "function",
+   "name": "_lenient_frontmatter_parse",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    42,
+    77
+   ],
+   "summary": "Best-effort line-by-line recovery parser for frontmatter blocks that are not strictly valid YAML, typically triggered by an unquoted scalar containing a colon (e.g. a description like 'name: Foo: a helper').",
+   "tags": [
+    "frontmatter",
+    "fallback-parser"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "function",
+   "name": "split_frontmatter",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    80,
+    102
+   ],
+   "summary": "Splits a source text into (metadata dict, body) by matching a leading '---'-delimited YAML block; tries yaml.safe_load first and falls back to _lenient_frontmatter_parse if the result isn't a dict (i.e. strict parsing failed or produced a scalar/list).",
+   "tags": [
+    "frontmatter",
+    "yaml"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:slugify",
+   "type": "function",
+   "name": "slugify",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    112,
+    118
+   ],
+   "summary": "Converts an arbitrary name string into a filesystem/identifier-safe slug (lowercase, hyphenated), falling back to a provided default when the result would be empty.",
+   "tags": [
+    "utility",
+    "naming"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:split_sections",
+   "type": "function",
+   "name": "split_sections",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    136,
+    180
+   ],
+   "summary": "Splits markdown body text into a list of Section(level, header, content) objects on ATX (#) headers, respecting fenced code blocks so headers inside ``` blocks are not mistaken for real section breaks; also returns leading preamble text.",
+   "tags": [
+    "markdown-parsing",
+    "sections"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "function",
+   "name": "split_roundtrip_segments",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    198,
+    226
+   ],
+   "summary": "Splits an AgentDef-generated file body on standalone '---' separator lines, skipping any '---' found inside a fenced code block. Used by the round-trip import paths (claude, copilot, cursor, openai importers) to safely recover the original Role/Skills/Workflows/Tools segment structure that the corresponding forward adapter previously wrote.",
+   "tags": [
+    "round-trip",
+    "markdown-parsing",
+    "bugfix"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:classify_header",
+   "type": "function",
+   "name": "classify_header",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    229,
+    236
+   ],
+   "summary": "Maps a markdown section header string to one of AgentDef's known content categories (role, objectives, style, priorities, avoid, safety, skills, workflows, tools) via a synonym table, defaulting to 'core' for anything unrecognized.",
+   "tags": [
+    "classification",
+    "markdown-parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:find_persona_sentence",
+   "type": "function",
+   "name": "find_persona_sentence",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    246,
+    259
+   ],
+   "summary": "Extracts a best-effort 'You are ...' / 'Your role is ...' / 'You help ...' identity sentence from free-form prose when no explicit Role section is present, tolerating a soft line-wrap but stopping at a paragraph break.",
+   "tags": [
+    "nlp-heuristic",
+    "persona-extraction"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:extract_bullets",
+   "type": "function",
+   "name": "extract_bullets",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    266,
+    283
+   ],
+   "summary": "Extracts markdown bullet list items (unordered '-'/'*' or ordered '1.'/'1)') from a section's text, stripping ordered-list numeric prefixes so callers can re-render their own numbering; falls back to non-empty lines if no bullets are found.",
+   "tags": [
+    "markdown-parsing",
+    "list-extraction"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "function",
+   "name": "generic_markdown_import",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    286,
+    407
+   ],
+   "summary": "Deterministic, framework-agnostic classifier that walks a markdown document's sections (via split_sections + classify_header), routes each into the matching AgentDefWriter category (role/objectives/style/priorities/avoid/skills/workflows/tools/core), and records every decision in the ImportReport. Falls back to persona-sentence detection and first-paragraph heuristics for the Role when no explicit section matches. This is the shared engine behind the claude, copilot, copilotstudio, cursor, generic, and openai importers.",
+   "tags": [
+    "markdown-parsing",
+    "classification",
+    "core-engine"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:agentdef/importers/_common.py:Section",
+   "type": "class",
+   "name": "Section",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    126,
+    129
+   ],
+   "summary": "Small value object representing one markdown section: heading level, header text, and content body.",
+   "tags": [
+    "data-model",
+    "markdown-parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "class",
+   "name": "ImportReport",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    415,
+    447
+   ],
+   "summary": "Accumulates three buckets of import decisions (mapped cleanly / inferred / dropped-as-framework-specific) via map()/infer()/drop(), and renders them as the IMPORT_REPORT.md shown to users, per the framework-import skill's transparency requirement.",
+   "tags": [
+    "reporting",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "class",
+   "name": "AgentDefWriter",
+   "filePath": "agentdef/importers/_common.py",
+   "lineRange": [
+    454,
+    649
+   ],
+   "summary": "Builder that accumulates classified agent content (role, objectives, style, priorities, avoid, core text chunks, instruction files, skills, workflows, tools, knowledge, runtime config, extra manifest fields) through setter/adder methods, then write() renders and writes out a full conformant AgentDef directory: agent.md, manifest.yaml, instructions/core.md plus any extra instruction/skill/workflow/tool/knowledge files, runtime/config.yaml, and IMPORT_REPORT.md.",
+   "tags": [
+    "writer",
+    "core-engine",
+    "file-output"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:agentdef/importers/claude/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/claude/importer.py",
+   "summary": "Imports a CLAUDE.md file or a Claude Code sub-agent definition into a conformant AgentDef directory; the reverse of adapters/claude/generate.py. Supports three source shapes: (1) round-trip recovery when the AgentDef-generated marker is present, (2) a Claude Code sub-agent file with YAML frontmatter (name/description/tools/model) parsed properly, and (3) any other generic CLAUDE.md handled by the shared best-effort markdown classifier.",
+   "tags": [
+    "importer",
+    "claude",
+    "reverse-adapter",
+    "round-trip"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "type": "function",
+   "name": "_import_roundtrip",
+   "filePath": "agentdef/importers/claude/importer.py",
+   "lineRange": [
+    46,
+    82
+   ],
+   "summary": "Recovers the original Role/Objectives/Style/Priorities/Avoid, Skills, Workflows and tool-frontmatter structure from a file previously generated by adapters/claude/generate.py, using split_roundtrip_segments to safely split on '---' separators.",
+   "tags": [
+    "round-trip",
+    "claude"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "type": "function",
+   "name": "import_claude_md",
+   "filePath": "agentdef/importers/claude/importer.py",
+   "lineRange": [
+    85,
+    144
+   ],
+   "summary": "Main entry point: reads the source file, detects which of the three supported shapes applies (round-trip marker, frontmatter-bearing sub-agent file, or generic markdown), dispatches accordingly, and writes the resulting AgentDefWriter output.",
+   "tags": [
+    "importer",
+    "claude",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/claude/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/claude/importer.py",
+   "lineRange": [
+    147,
+    157
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_claude_md, printing the created agent directory path.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/copilot/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/copilot/importer.py",
+   "summary": "Imports GitHub Copilot custom instructions into a conformant AgentDef directory; reverse of adapters/copilot/generate.py. Supports repository-wide copilot-instructions.md, path-scoped NAME.instructions.md files (applyTo glob preserved as a comment), and NAME.agent.md custom-agent files with parsed frontmatter.",
+   "tags": [
+    "importer",
+    "copilot",
+    "reverse-adapter",
+    "round-trip"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/copilot/importer.py:_parse_instructions_file",
+   "type": "function",
+   "name": "_parse_instructions_file",
+   "filePath": "agentdef/importers/copilot/importer.py",
+   "lineRange": [
+    41,
+    47
+   ],
+   "summary": "Reads a NAME.instructions.md file and returns its (applyTo glob or None, body) by splitting frontmatter.",
+   "tags": [
+    "frontmatter",
+    "copilot"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "type": "function",
+   "name": "_import_roundtrip",
+   "filePath": "agentdef/importers/copilot/importer.py",
+   "lineRange": [
+    53,
+    83
+   ],
+   "summary": "Recovers Instructions/Skills/Workflows structure from a file previously generated by adapters/copilot/generate.py, using split_roundtrip_segments to split safely on '---'.",
+   "tags": [
+    "round-trip",
+    "copilot"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "type": "function",
+   "name": "import_copilot",
+   "filePath": "agentdef/importers/copilot/importer.py",
+   "lineRange": [
+    86,
+    160
+   ],
+   "summary": "Main entry point: reads the primary instructions file, detects round-trip vs. frontmatter-bearing agent file vs. plain markdown, optionally scans an --instructions-dir of path-scoped NAME.instructions.md files (each becoming its own instructions/<name>.md with the applyTo glob preserved), and writes the AgentDef output.",
+   "tags": [
+    "importer",
+    "copilot",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:agentdef/importers/copilot/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/copilot/importer.py",
+   "lineRange": [
+    163,
+    181
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_copilot including the optional --instructions-dir flag.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/copilotstudio/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/copilotstudio/importer.py",
+   "summary": "Imports Microsoft Copilot Studio agent definitions (as published in github/awesome-copilot-studio-agents) into a conformant AgentDef directory. Parses the H1-wrapped skeleton (Description, Conversation Starters, Instructions fenced block, Knowledge Sources, Deployment Notes, Changelog); the fenced Instructions block is the real system prompt and is run back through generic_markdown_import so its own internal Role/Objectives/Avoid sub-structure is classified correctly rather than dumped verbatim.",
+   "tags": [
+    "importer",
+    "copilotstudio",
+    "reverse-adapter"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/copilotstudio/importer.py:_extract_first_fenced_block",
+   "type": "function",
+   "name": "_extract_first_fenced_block",
+   "filePath": "agentdef/importers/copilotstudio/importer.py",
+   "lineRange": [
+    64,
+    68
+   ],
+   "summary": "Extracts the content of the first fenced (```...```) code block in a text via regex; used to pull the raw Instructions prompt out of its wrapping section.",
+   "tags": [
+    "markdown-parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "type": "function",
+   "name": "import_copilotstudio",
+   "filePath": "agentdef/importers/copilotstudio/importer.py",
+   "lineRange": [
+    71,
+    162
+   ],
+   "summary": "Main entry point: parses optional frontmatter, splits the body into named sections, extracts the Instructions fenced block and reclassifies it via generic_markdown_import, and maps Knowledge Sources / Deployment Notes / Changelog into knowledge, manifest fields, or dropped-as-framework-specific per the ImportReport.",
+   "tags": [
+    "importer",
+    "copilotstudio",
+    "entry-point"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:agentdef/importers/copilotstudio/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/copilotstudio/importer.py",
+   "lineRange": [
+    165,
+    177
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_copilotstudio.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/crewai/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/crewai/importer.py",
+   "summary": "CrewAI importer (task P3.4): converts agents.yaml / tasks.yaml / a combined crew.yaml (the shape emitted by AgentDef's own CrewAI adapter, {agents, tasks}) into one AgentDef directory per agent. CrewAI 'role' maps to agent.md Role, 'goal' to Objectives, 'backstory' to instructions/core.md; unrecognized agent fields are preserved verbatim as YAML in core.md so nothing is silently dropped; tasks assigned to an agent become workflow files.",
+   "tags": [
+    "importer",
+    "crewai",
+    "reverse-adapter",
+    "yaml"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "type": "function",
+   "name": "_import_one",
+   "filePath": "agentdef/importers/crewai/importer.py",
+   "lineRange": [
+    18,
+    56
+   ],
+   "summary": "Builds and writes a single AgentDef directory for one CrewAI agent: maps role/goal/backstory, preserves any other agent fields verbatim, and converts tasks assigned to this agent (task.agent == agent_key or unset) into workflow files combining description + expected_output.",
+   "tags": [
+    "crewai",
+    "writer"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/crewai/importer.py:import_crewai",
+   "type": "function",
+   "name": "import_crewai",
+   "filePath": "agentdef/importers/crewai/importer.py",
+   "lineRange": [
+    59,
+    81
+   ],
+   "summary": "Entry point: loads the YAML source, accepts either the adapter's {agents, tasks} shape or a bare CrewAI agents.yaml mapping, validates the parsed structure, and calls _import_one for every agent found, returning the path of the first created agent directory.",
+   "tags": [
+    "crewai",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/crewai/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/crewai/importer.py",
+   "lineRange": [
+    84,
+    92
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_crewai.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/cursor/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/cursor/importer.py",
+   "summary": "Cursor importer (task P3.1): converts cursor-rules.md, legacy .cursorrules, and .cursor/rules/*.mdc files (MDC frontmatter: description, globs, alwaysApply) into an AgentDef directory. Detects the AgentDef-generated marker to recover Agent Identity / Rules / Macros / Workflows blocks on round-trip, so adapt -> import -> adapt reaches a fixed point.",
+   "tags": [
+    "importer",
+    "cursor",
+    "reverse-adapter",
+    "round-trip"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/cursor/importer.py:_strip_label",
+   "type": "function",
+   "name": "_strip_label",
+   "filePath": "agentdef/importers/cursor/importer.py",
+   "lineRange": [
+    27,
+    28
+   ],
+   "summary": "Removes a known leading label (e.g. '## Rules') from a round-trip segment, or just strips whitespace if the label isn't present.",
+   "tags": [
+    "string-utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "type": "function",
+   "name": "_import_roundtrip",
+   "filePath": "agentdef/importers/cursor/importer.py",
+   "lineRange": [
+    31,
+    59
+   ],
+   "summary": "Recovers Agent Identity / Rules / Macros / Workflows structure from a file previously generated by adapters/cursor/generate.py, via split_roundtrip_segments and per-segment label stripping.",
+   "tags": [
+    "round-trip",
+    "cursor"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "type": "function",
+   "name": "import_cursor",
+   "filePath": "agentdef/importers/cursor/importer.py",
+   "lineRange": [
+    62,
+    110
+   ],
+   "summary": "Main entry point: reads the source file, detects round-trip vs. MDC-frontmatter (.mdc) vs. generic markdown, and writes the AgentDef output; MDC 'globs'/'alwaysApply' metadata are preserved in the manifest.",
+   "tags": [
+    "importer",
+    "cursor",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/cursor/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/cursor/importer.py",
+   "lineRange": [
+    113,
+    121
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_cursor.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/generic/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/generic/importer.py",
+   "summary": "Generic markdown importer (task P3.3): converts any markdown/prompt/persona file into a conformant AgentDef directory with zero framework assumptions. Guarantees the 'nothing dropped silently' invariant (SPEC Appendix E) -- unrecognized content always lands in instructions/core.md and is flagged in IMPORT_REPORT.md. This is the catch-all/fallback importer.",
+   "tags": [
+    "importer",
+    "generic",
+    "reverse-adapter",
+    "fallback"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/generic/importer.py:import_generic",
+   "type": "function",
+   "name": "import_generic",
+   "filePath": "agentdef/importers/generic/importer.py",
+   "lineRange": [
+    26,
+    54
+   ],
+   "summary": "Entry point: parses optional frontmatter for a name/description, determines the agent name (explicit --name, frontmatter name, or first H1/top section header), and delegates all content classification to generic_markdown_import before writing the AgentDef output.",
+   "tags": [
+    "generic",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/generic/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/generic/importer.py",
+   "lineRange": [
+    57,
+    65
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_generic.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/letta/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/letta/importer.py",
+   "summary": "Letta Agent File (.af) importer (task P3.7): imports only the behavior-relevant subset of a Letta agent file (name, description, system prompt, persona memory block, tool names) into AgentDef, since Letta's .af format serializes a full stateful agent (memory blocks, message history, tool state, LLM config). Every stateful field it intentionally ignores (messages, core_memory, archival_memory, llm_config, etc.) is explicitly named and reported as dropped -- this is an interop bridge, not a lossless converter.",
+   "tags": [
+    "importer",
+    "letta",
+    "reverse-adapter",
+    "stateful-agent"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/letta/importer.py:import_letta",
+   "type": "function",
+   "name": "import_letta",
+   "filePath": "agentdef/importers/letta/importer.py",
+   "lineRange": [
+    26,
+    73
+   ],
+   "summary": "Entry point: loads the .af JSON (top-level agent object or {'agents': [...]}), extracts name/description/system prompt and any 'persona' memory block, derives a Role from the persona or system prompt's first sentence (via find_persona_sentence, inferred if absent), converts tool names into a tools list, and reports every known STATE_FIELDS key present in the source as explicitly dropped.",
+   "tags": [
+    "letta",
+    "entry-point",
+    "state-mapping"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/letta/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/letta/importer.py",
+   "lineRange": [
+    76,
+    84
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_letta.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/m365copilot/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/m365copilot/importer.py",
+   "summary": "Imports a Microsoft 365 Copilot declarative agent manifest (declarativeAgent.json, schema v1.0-1.7) into a conformant AgentDef directory; the reverse of agentdef/adapters/m365copilot, so the pair round-trips. Maps instructions to Role/core text, capabilities and actions to tools/<name>.md (using a static CAPABILITY_DESCRIPTIONS lookup for known capability names plus the raw JSON definition), conversation starters and editorial answers to knowledge/, and disclaimer/behavior overrides to safety guidance.",
+   "tags": [
+    "importer",
+    "m365copilot",
+    "reverse-adapter",
+    "json"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/m365copilot/importer.py:_render_capability",
+   "type": "function",
+   "name": "_render_capability",
+   "filePath": "agentdef/importers/m365copilot/importer.py",
+   "lineRange": [
+    41,
+    45
+   ],
+   "summary": "Renders a single declarative-agent 'capability' entry as a tools/<name>.md file body: a human-readable description (from CAPABILITY_DESCRIPTIONS, or a generic fallback for unknown capability names) plus the raw capability JSON for full fidelity.",
+   "tags": [
+    "rendering",
+    "m365copilot"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/m365copilot/importer.py:_render_action",
+   "type": "function",
+   "name": "_render_action",
+   "filePath": "agentdef/importers/m365copilot/importer.py",
+   "lineRange": [
+    48,
+    56
+   ],
+   "summary": "Renders a single declarative-agent 'action' (custom API/plugin action) entry as a tools/<name>.md file body with its raw JSON definition.",
+   "tags": [
+    "rendering",
+    "m365copilot"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "type": "function",
+   "name": "import_m365copilot",
+   "filePath": "agentdef/importers/m365copilot/importer.py",
+   "lineRange": [
+    59,
+    174
+   ],
+   "summary": "Entry point: parses the manifest JSON, maps name/description, derives Role via find_persona_sentence or the first sentence of the instructions (falling back to inference), writes instructions text to core.md, converts each capability/action into its own tools/<name>.md via _render_capability/_render_action, maps conversation_starters and editorial answers to knowledge/, folds disclaimer and behavior_overrides into safety guidance, and preserves runtime/manifest metadata.",
+   "tags": [
+    "m365copilot",
+    "entry-point",
+    "json-mapping"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:agentdef/importers/m365copilot/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/m365copilot/importer.py",
+   "lineRange": [
+    177,
+    189
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_m365copilot.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/importers/openai/importer.py",
+   "type": "file",
+   "name": "importer.py",
+   "filePath": "agentdef/importers/openai/importer.py",
+   "summary": "OpenAI AGENTS.md importer (task P3.2): converts a file following the agents.md convention (https://agents.md) -- used by OpenAI Assistants and other agent tooling -- into an AgentDef directory. Detects the AgentDef-generated marker to recover System Instructions / Tools / Execution Flow blocks on round-trip so adapt -> import -> adapt reaches a fixed point; otherwise falls back to frontmatter parsing plus the shared generic markdown classifier.",
+   "tags": [
+    "importer",
+    "openai",
+    "reverse-adapter",
+    "round-trip"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/openai/importer.py:_strip_label",
+   "type": "function",
+   "name": "_strip_label",
+   "filePath": "agentdef/importers/openai/importer.py",
+   "lineRange": [
+    26,
+    27
+   ],
+   "summary": "Removes a known leading label (e.g. '## Tools') from a round-trip segment, or just strips whitespace if absent -- identical helper pattern to the cursor importer's _strip_label.",
+   "tags": [
+    "string-utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "type": "function",
+   "name": "_import_roundtrip",
+   "filePath": "agentdef/importers/openai/importer.py",
+   "lineRange": [
+    30,
+    53
+   ],
+   "summary": "Recovers System Instructions / Tools / Execution Flow (-> workflows) structure from a file previously generated by adapters/openai/generate.py, via split_roundtrip_segments and per-segment label stripping.",
+   "tags": [
+    "round-trip",
+    "openai"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/openai/importer.py:import_openai",
+   "type": "function",
+   "name": "import_openai",
+   "filePath": "agentdef/importers/openai/importer.py",
+   "lineRange": [
+    56,
+    91
+   ],
+   "summary": "Main entry point: reads the source file, detects round-trip vs. frontmatter-bearing vs. generic markdown, and writes the AgentDef output.",
+   "tags": [
+    "openai",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/importers/openai/importer.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/importers/openai/importer.py",
+   "lineRange": [
+    94,
+    102
+   ],
+   "summary": "CLI entry point: argparse wrapper around import_openai.",
+   "tags": [
+    "cli"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/_common.py",
+   "type": "file",
+   "name": "_common.py",
+   "filePath": "agentdef/adapters/_common.py",
+   "summary": "Shared runtime library for all forward adapters. Defines the AgentDef class, which loads a canonical AgentDef agent directory (agent.md, manifest.yaml, instruction/workflow files, skills) into memory, and write_output, a small helper that writes generated content to a file or stdout. Every adapters/<framework>/generate.py module depends on this file for loading and output.",
+   "tags": [
+    "adapter-shared",
+    "loader",
+    "manifest-parsing",
+    "yaml",
+    "io"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Uses Python 3.9+ union/generic syntax (str | None, list[tuple[str, str]]); requires PyYAML and exits with an actionable error message if missing."
+  },
+  {
+   "id": "class:agentdef/adapters/_common.py:AgentDef",
+   "type": "class",
+   "name": "AgentDef",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    13,
+    57
+   ],
+   "summary": "Loads and represents a single AgentDef agent directory: resolves the root path, reads agent.md, parses manifest.yaml, and reads the referenced instruction files, workflow files, and skill SKILL.md files into (path, content) tuples. Raises FileNotFoundError if the directory or manifest.yaml is missing. All nine generate.py adapters instantiate this class as their entry point.",
+   "tags": [
+    "loader",
+    "core-model",
+    "manifest"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/_common.py:AgentDef.__init__",
+   "type": "function",
+   "name": "AgentDef.__init__",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    16,
+    26
+   ],
+   "summary": "Resolves the agent directory path, validates it exists, then populates agent_md, manifest, name, instructions, workflows, and skills by delegating to the private _read/_load_manifest/_read_list/_read_skills helpers.",
+   "tags": [
+    "constructor",
+    "initialization"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/_common.py:AgentDef._read",
+   "type": "function",
+   "name": "AgentDef._read",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    28,
+    32
+   ],
+   "summary": "Reads a single file relative to the agent root as UTF-8 text, returning an empty string if it does not exist.",
+   "tags": [
+    "file-io",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/_common.py:AgentDef._load_manifest",
+   "type": "function",
+   "name": "AgentDef._load_manifest",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    34,
+    39
+   ],
+   "summary": "Loads and parses manifest.yaml from the agent root via PyYAML, raising FileNotFoundError if it is missing since the manifest is mandatory.",
+   "tags": [
+    "yaml",
+    "manifest",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/_common.py:AgentDef._read_list",
+   "type": "function",
+   "name": "AgentDef._read_list",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    41,
+    48
+   ],
+   "summary": "Reads every file referenced under a given manifest field (e.g. 'instructions' or 'workflows'), returning a list of (relative-path, content) tuples for entries that produced non-empty content.",
+   "tags": [
+    "manifest",
+    "helper",
+    "batch-read"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/_common.py:AgentDef._read_skills",
+   "type": "function",
+   "name": "AgentDef._read_skills",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    50,
+    57
+   ],
+   "summary": "Reads the SKILL.md file from each skill directory listed under the manifest 'skills' field, returning (relative-path, content) tuples for skills that have a SKILL.md present.",
+   "tags": [
+    "manifest",
+    "helper",
+    "skills"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/_common.py:write_output",
+   "type": "function",
+   "name": "write_output",
+   "filePath": "agentdef/adapters/_common.py",
+   "lineRange": [
+    60,
+    66
+   ],
+   "summary": "Writes generated adapter content to a file (and prints a confirmation to stderr) when an output path is given, otherwise prints the content to stdout. Used as the final step of every adapter's main().",
+   "tags": [
+    "io",
+    "cli-output",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/assistants/generate.py",
+   "type": "file",
+   "name": "generate.py (assistants)",
+   "filePath": "agentdef/adapters/assistants/generate.py",
+   "summary": "Forward adapter that produces an OpenAI Assistants API create-payload (JSON body for POST /v1/assistants) from an AgentDef agent directory. This is distinct from the plain openai/generate.py adapter, which emits a Markdown AGENTS.md file \u2014 this one targets the Assistants API specifically. It concatenates agent.md and instruction files in manifest order per SPEC 5.3, resolves the model from runtime/config.yaml (falling back to a placeholder that must be manually set), and maps manifest `capabilities` entries (code-interpreter/file-search, with underscore/hyphen variants) to Assistants API tool objects.",
+   "tags": [
+    "adapter",
+    "openai-assistants",
+    "json-generation",
+    "forward-adapter"
+   ],
+   "complexity": "simple",
+   "languageNotes": "New adapter added since the pre-rename version (per project context); truncates name to 256 chars, instructions to 256000 chars, and description to 512 chars to respect Assistants API field limits."
+  },
+  {
+   "id": "function:agentdef/adapters/assistants/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/assistants/generate.py",
+   "lineRange": [
+    29,
+    57
+   ],
+   "summary": "Builds the Assistants API create-payload dict: concatenates agent.md and instructions into the 'instructions' field, resolves 'model' from manifest.runtime.model or a placeholder default, sets truncated 'name'/'instructions'/'description', tags metadata with an AgentDef marker, and populates 'tools' from manifest capabilities via the CAPABILITY_TOOLS lookup table, deduplicating tool entries. Returns pretty-printed JSON with a trailing newline.",
+   "tags": [
+    "payload-construction",
+    "json",
+    "capability-mapping"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/assistants/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/assistants/generate.py",
+   "lineRange": [
+    60,
+    68
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, generates the payload, writes it via write_output, and prints a confirmation if a file was written.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/claude/generate.py",
+   "type": "file",
+   "name": "generate.py (claude)",
+   "filePath": "agentdef/adapters/claude/generate.py",
+   "summary": "Forward adapter that produces a single CLAUDE.md file from an AgentDef agent directory, assembling identity (agent.md), instructions, skills, and workflows into Claude's expected system-prompt format. New in this revision: a _mcp_section helper that, per project context (git log 'MCP mapping') and the new mcp.schema.json added to the spec, surfaces tools/mcp.yaml as a fenced YAML block labeled '## MCP Servers' appended near the end of CLAUDE.md \u2014 this both lets Claude tooling lift MCP server/tool config into .mcp.json and lets the reverse importer restore it verbatim.",
+   "tags": [
+    "adapter",
+    "claude",
+    "markdown-generation",
+    "forward-adapter",
+    "mcp"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/claude/generate.py:_mcp_section",
+   "type": "function",
+   "name": "_mcp_section",
+   "filePath": "agentdef/adapters/claude/generate.py",
+   "lineRange": [
+    18,
+    25
+   ],
+   "summary": "Reads tools/mcp.yaml from the agent root, if present, and wraps its content in a labeled '## MCP Servers' Markdown section with a yaml fenced code block. Returns None when no mcp.yaml exists, so generate() can skip the section entirely. This is the mechanism referenced in the project's MCP mapping release note \u2014 it round-trips MCP server/tool declarations through CLAUDE.md.",
+   "tags": [
+    "mcp",
+    "yaml",
+    "markdown-generation",
+    "round-trip"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/claude/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/claude/generate.py",
+   "lineRange": [
+    28,
+    64
+   ],
+   "summary": "Assembles CLAUDE.md section by section: title header and generated-marker comment, agent.md identity content, each instruction file separated by a horizontal rule, a '# Skills' section listing SKILL.md contents (if any), a '# Workflows' section (if any), and finally the MCP servers section from _mcp_section (if tools/mcp.yaml exists). Joins everything with newlines and strips trailing whitespace.",
+   "tags": [
+    "markdown-generation",
+    "assembly"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/claude/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/claude/generate.py",
+   "lineRange": [
+    67,
+    75
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, calls generate(), and writes the result via write_output.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/copilot/generate.py",
+   "type": "file",
+   "name": "generate.py (copilot)",
+   "filePath": "agentdef/adapters/copilot/generate.py",
+   "summary": "Forward adapter that produces .github/copilot-instructions.md from an AgentDef agent directory, mapping agent.md identity to the header, instructions to an '## Instructions' section, skills to an '## Extensions' section, and workflows to a '## Task Guidance' section \u2014 GitHub Copilot's custom-instructions format.",
+   "tags": [
+    "adapter",
+    "github-copilot",
+    "markdown-generation",
+    "forward-adapter"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/copilot/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/copilot/generate.py",
+   "lineRange": [
+    18,
+    51
+   ],
+   "summary": "Builds copilot-instructions.md: title + generated-marker header, agent.md identity, an '## Instructions' section listing each instruction file's content, an '## Extensions' section for skills (if any), and a '## Task Guidance' section for workflows (if any). Joins sections and strips trailing whitespace.",
+   "tags": [
+    "markdown-generation",
+    "assembly"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/copilot/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/copilot/generate.py",
+   "lineRange": [
+    54,
+    62
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, calls generate(), and writes the result via write_output.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/crewai/generate.py",
+   "type": "file",
+   "name": "generate.py (crewai)",
+   "filePath": "agentdef/adapters/crewai/generate.py",
+   "summary": "Forward adapter that produces a single CrewAI-style YAML config (crew.yaml) from an AgentDef agent directory \u2014 a new adapter since the last scan. The YAML document contains the two mappings CrewAI normally splits across config/agents.yaml and config/tasks.yaml: one 'agents' entry (role/goal/backstory parsed out of agent.md's Role/Objectives/Style sections) and one 'tasks' entry per AgentDef workflow file, each keyed by a slug derived from the workflow's title.",
+   "tags": [
+    "adapter",
+    "crewai",
+    "yaml-generation",
+    "forward-adapter"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/crewai/generate.py:_section",
+   "type": "function",
+   "name": "_section",
+   "filePath": "agentdef/adapters/crewai/generate.py",
+   "lineRange": [
+    20,
+    22
+   ],
+   "summary": "Extracts the body text of a named Markdown section (e.g. 'Role', 'Objectives', 'Style') from agent.md using a case-insensitive regex that matches from a '#'/'##' heading up to the next heading or end of string. Returns an empty string if the section is absent.",
+   "tags": [
+    "markdown-parsing",
+    "regex",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/crewai/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/crewai/generate.py",
+   "lineRange": [
+    25,
+    62
+   ],
+   "summary": "Builds the CrewAI YAML doc: derives role/goal/backstory from agent.md's Role, Objectives, and Style sections (falling back to sensible defaults), attaches a system_template_note pointing to the full instruction files when present, and creates one task entry per workflow with a slugified key, truncated description, and a generic expected_output string. Serializes with yaml.safe_dump preserving key order.",
+   "tags": [
+    "yaml-generation",
+    "markdown-parsing",
+    "assembly"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:agentdef/adapters/crewai/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/crewai/generate.py",
+   "lineRange": [
+    65,
+    72
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, generates the YAML, writes it via write_output, and prints a confirmation if a file was written.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/cursor/generate.py",
+   "type": "file",
+   "name": "generate.py (cursor)",
+   "filePath": "agentdef/adapters/cursor/generate.py",
+   "summary": "Forward adapter that produces cursor-rules.md from an AgentDef agent directory, structuring content as an '## Agent Identity' preamble, a '## Rules' section from instructions, a '## Macros' section from skills, and a '## Workflows' section \u2014 matching Cursor's editor rules-file conventions.",
+   "tags": [
+    "adapter",
+    "cursor",
+    "markdown-generation",
+    "forward-adapter"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/cursor/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/cursor/generate.py",
+   "lineRange": [
+    18,
+    52
+   ],
+   "summary": "Builds cursor-rules.md: title + generated-marker header, an '## Agent Identity' section from agent.md, a '## Rules' section listing instruction file contents, a '## Macros' section for skills (if any), and a '## Workflows' section (if any). Joins sections and strips trailing whitespace.",
+   "tags": [
+    "markdown-generation",
+    "assembly"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/cursor/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/cursor/generate.py",
+   "lineRange": [
+    55,
+    63
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, calls generate(), and writes the result via write_output.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/langgraph/generate.py",
+   "type": "file",
+   "name": "generate.py (langgraph)",
+   "filePath": "agentdef/adapters/langgraph/generate.py",
+   "summary": "Forward adapter that produces a starter LangGraph Python scaffold (graph.py) from an AgentDef agent directory. It is the largest and most code-generation-heavy adapter in the batch: it extracts workflow step names (via '## Step N \u2014 Name' headings) and skill names to become LangGraph node functions, extracts the agent's Role section from agent.md as the SYSTEM_PROMPT, and emits a full Python module defining an AgentState TypedDict, placeholder node functions, and a build_graph() function that wires nodes into a linear StateGraph from entry point to END.",
+   "tags": [
+    "adapter",
+    "langgraph",
+    "code-generation",
+    "forward-adapter",
+    "scaffold"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:agentdef/adapters/langgraph/generate.py:_extract_steps",
+   "type": "function",
+   "name": "_extract_steps",
+   "filePath": "agentdef/adapters/langgraph/generate.py",
+   "lineRange": [
+    20,
+    29
+   ],
+   "summary": "Parses a workflow Markdown file for headings of the form '## Step N \u2014 Name' and converts each captured name into a Python-identifier-safe slug (lowercased, non-alphanumeric runs collapsed to underscores), returning the ordered list of step slugs to become graph node names.",
+   "tags": [
+    "markdown-parsing",
+    "regex",
+    "slug-generation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/langgraph/generate.py:_extract_role",
+   "type": "function",
+   "name": "_extract_role",
+   "filePath": "agentdef/adapters/langgraph/generate.py",
+   "lineRange": [
+    32,
+    37
+   ],
+   "summary": "Extracts the body of the '## Role' (or '# Role') section from agent.md via regex, falling back to the literal string 'AI agent' if no Role section is found. Used to seed the generated graph's SYSTEM_PROMPT constant.",
+   "tags": [
+    "markdown-parsing",
+    "regex",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/langgraph/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/langgraph/generate.py",
+   "lineRange": [
+    40,
+    137
+   ],
+   "summary": "Generates the full graph.py source text: extracts role and workflow steps (falling back to a default ['process', 'respond'] pipeline when no steps are found), derives skill-based node names from skill directory paths, then emits module docstring, imports, an AgentState TypedDict, the SYSTEM_PROMPT, a placeholder function per step/skill node (each returning state unchanged with a TODO comment), and a build_graph() function that registers all nodes, sets the first node as entry point, chains edges sequentially between nodes, and routes the last node to END. Also emits a __main__ block that compiles and invokes the graph.",
+   "tags": [
+    "code-generation",
+    "python-source-emission",
+    "assembly"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:agentdef/adapters/langgraph/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/langgraph/generate.py",
+   "lineRange": [
+    140,
+    148
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, calls generate(), and writes the result via write_output.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/m365copilot/generate.py",
+   "type": "file",
+   "name": "generate.py (m365copilot)",
+   "filePath": "agentdef/adapters/m365copilot/generate.py",
+   "summary": "Forward adapter \u2014 new since the last scan \u2014 that produces a Microsoft 365 Copilot declarative agent manifest (declarativeAgent.json) from an AgentDef agent directory, targeting declarative agent schema v1.5. It closes the loop with the existing importers/m365copilot reverse adapter. Maps name, description, and concatenated instructions (capped at the schema's 8000-character limit, with a truncation notice appended when exceeded) plus conversation_starters synthesized from workflow titles (capped at 6). Capabilities/actions are deliberately not invented, per the module docstring, since those must be declared on the target platform.",
+   "tags": [
+    "adapter",
+    "m365-copilot",
+    "json-generation",
+    "forward-adapter",
+    "declarative-agent"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/m365copilot/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/m365copilot/generate.py",
+   "lineRange": [
+    24,
+    53
+   ],
+   "summary": "Builds the declarativeAgent.json document: resolves description from the manifest or a generated default, concatenates agent.md and instructions into 'instructions' and truncates to INSTRUCTIONS_CAP (8000 chars) with a truncation notice if needed, sets $schema/version/name/description fields with length caps, and derives up to 6 conversation_starters from the first heading line of each workflow file. Adds a $comment marking the file as generated. Returns indented JSON with trailing newline.",
+   "tags": [
+    "payload-construction",
+    "json",
+    "truncation",
+    "markdown-parsing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/adapters/m365copilot/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/m365copilot/generate.py",
+   "lineRange": [
+    56,
+    64
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, generates the JSON document, writes it via write_output, and prints a confirmation if a file was written.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/adapters/openai/generate.py",
+   "type": "file",
+   "name": "generate.py (openai)",
+   "filePath": "agentdef/adapters/openai/generate.py",
+   "summary": "Forward adapter that produces a plain-Markdown AGENTS.md file from an AgentDef agent directory, structured as '## System Instructions' (agent.md), per-instruction sections separated by horizontal rules, a '## Tools' section from skills, and an '## Execution Flow' section from workflows. Distinct from adapters/assistants/generate.py, which targets the OpenAI Assistants API JSON payload rather than this Markdown convention.",
+   "tags": [
+    "adapter",
+    "openai",
+    "markdown-generation",
+    "forward-adapter"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/openai/generate.py:generate",
+   "type": "function",
+   "name": "generate",
+   "filePath": "agentdef/adapters/openai/generate.py",
+   "lineRange": [
+    18,
+    50
+   ],
+   "summary": "Builds AGENTS.md: title + generated-marker header, a '## System Instructions' section with agent.md content, each instruction file appended after a horizontal rule, a '## Tools' section listing skill contents (if any), and an '## Execution Flow' section listing workflow contents (if any). Joins sections and strips trailing whitespace.",
+   "tags": [
+    "markdown-generation",
+    "assembly"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/adapters/openai/generate.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/adapters/openai/generate.py",
+   "lineRange": [
+    53,
+    61
+   ],
+   "summary": "CLI entry point: parses agent_dir and --output arguments, loads the AgentDef, calls generate(), and writes the result via write_output.",
+   "tags": [
+    "cli",
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:agentdef/cli.py",
+   "type": "file",
+   "name": "cli.py",
+   "filePath": "agentdef/cli.py",
+   "summary": "Console-script entry point for the `agentdef` CLI. Defines argparse subcommands validate, adapt, import, init, sync, and list, dispatching each to the relevant module. Adapter/importer selection is done by looking up the framework name in the static ADAPTERS/IMPORTERS registry (agentdef/registry.py) and then dynamically importing the target module via importlib at call time.",
+   "tags": [
+    "cli",
+    "entry-point",
+    "argparse",
+    "orchestration",
+    "dispatch"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Python 3, uses `from __future__ import annotations`; imports validate/init/sync lazily inside their command functions to keep startup light."
+  },
+  {
+   "id": "file:agentdef/init.py",
+   "type": "file",
+   "name": "init.py",
+   "filePath": "agentdef/init.py",
+   "summary": "Implements `agentdef init`: scaffolds a new, valid AgentDef agent directory (agent.md, instructions/core.md, README.md, manifest.yaml). Supports an interactive mode (prompts via `_ask`) and a non-interactive `--yes` mode for scripts/CI. Validates requested sync frameworks against the ADAPTERS registry.",
+   "tags": [
+    "cli",
+    "scaffolding",
+    "init",
+    "interactive-prompt",
+    "templates"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Uses triple-quoted string templates (AGENT_MD, CORE_MD, README) formatted with .format()."
+  },
+  {
+   "id": "file:agentdef/registry.py",
+   "type": "file",
+   "name": "registry.py",
+   "filePath": "agentdef/registry.py",
+   "summary": "Single source of truth for which frameworks the AgentDef toolkit supports. Defines frozen dataclasses AdapterSpec and ImporterSpec, and two static dicts, ADAPTERS and IMPORTERS, that map a framework name (e.g. 'claude', 'copilot') to metadata including the dotted module path to import, canonical output filename/entrypoint, and a human-readable description. Replaces what would previously have been ad hoc directory-scanning or hardcoded if/elif dispatch; consumers (cli.py, init.py, sync.py) still call importlib.import_module(spec.module) at runtime using the path stored here, so module loading itself is still dynamic \u2014 this registry only centralizes and declares *which* modules exist and how to reach them, rather than eliminating importlib-based loading altogether.",
+   "tags": [
+    "registry",
+    "dataclass",
+    "configuration",
+    "single-source-of-truth",
+    "architecture"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Uses @dataclass(frozen=True) for immutable spec records; dicts built via comprehension keyed by `.framework`."
+  },
+  {
+   "id": "file:agentdef/sync.py",
+   "type": "file",
+   "name": "sync.py",
+   "filePath": "agentdef/sync.py",
+   "summary": "Implements `agentdef sync [--check]`: regenerates every framework output file declared under the `sync:` key in an agent's manifest.yaml by dynamically importing each target adapter module (via ADAPTERS + importlib) and calling its generate() function. `--check` mode writes nothing and exits with drift status for CI. Exports SyncError for invalid or unsafe sync configuration (e.g. output path escaping the agent directory).",
+   "tags": [
+    "cli",
+    "sync",
+    "codegen",
+    "drift-detection",
+    "ci"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Uses Path.resolve()/parents for a path-escape safety check on configured output paths."
+  },
+  {
+   "id": "function:agentdef/cli.py:cmd_validate",
+   "type": "function",
+   "name": "cmd_validate",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    20,
+    25
+   ],
+   "summary": "Handler for `agentdef validate`; lazily imports agentdef.validation.validate, runs it against the given agent directory, prints a summary, and returns exit code 0/1 based on validity.",
+   "tags": [
+    "command-handler",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/cli.py:cmd_adapt",
+   "type": "function",
+   "name": "cmd_adapt",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    28,
+    36
+   ],
+   "summary": "Handler for `agentdef adapt`; looks up the target framework in ADAPTERS, dynamically imports its module, constructs an AgentDef from the agent dir, calls generate() then write_output() to produce the framework-specific file.",
+   "tags": [
+    "command-handler",
+    "adapter-dispatch",
+    "importlib"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/cli.py:cmd_import",
+   "type": "function",
+   "name": "cmd_import",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    39,
+    51
+   ],
+   "summary": "Handler for `agentdef import`; looks up the source framework in IMPORTERS, dynamically imports its module, resolves the configured entrypoint function by name via getattr, and invokes it with source/output/kwargs (including copilot-specific instructions_dir).",
+   "tags": [
+    "command-handler",
+    "importer-dispatch",
+    "importlib"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/cli.py:cmd_init",
+   "type": "function",
+   "name": "cmd_init",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    54,
+    70
+   ],
+   "summary": "Handler for `agentdef init`; lazily imports agentdef.init.init_agent, forwards CLI args (directory, name, frameworks, yes), and reports the created agent path or a FileExistsError/ValueError as a friendly CLI error (exit code 2).",
+   "tags": [
+    "command-handler",
+    "init",
+    "error-handling"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/cli.py:cmd_sync",
+   "type": "function",
+   "name": "cmd_sync",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    73,
+    88
+   ],
+   "summary": "Handler for `agentdef sync`; lazily imports agentdef.sync.sync and SyncError, runs sync with --check support, prints per-output status (up to date / wrote / STALE), and returns exit code 1 in --check mode when drift is detected.",
+   "tags": [
+    "command-handler",
+    "sync",
+    "ci",
+    "error-handling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/cli.py:cmd_list",
+   "type": "function",
+   "name": "cmd_list",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    91,
+    98
+   ],
+   "summary": "Handler for `agentdef list`; prints all registered adapters and importers by iterating the static ADAPTERS and IMPORTERS registries from registry.py.",
+   "tags": [
+    "command-handler",
+    "registry-introspection"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/cli.py:build_parser",
+   "type": "function",
+   "name": "build_parser",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    101,
+    145
+   ],
+   "summary": "Builds the argparse.ArgumentParser for the agentdef CLI, wiring all six subcommands (validate, adapt, import, init, sync, list) and their arguments, with framework choices sourced dynamically from sorted(ADAPTERS)/sorted(IMPORTERS).",
+   "tags": [
+    "argparse",
+    "cli-setup"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/cli.py:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "agentdef/cli.py",
+   "lineRange": [
+    148,
+    151
+   ],
+   "summary": "Top-level entry point: builds the parser, parses argv, and dispatches to the selected subcommand's func.",
+   "tags": [
+    "entry-point"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/init.py:_ask",
+   "type": "function",
+   "name": "_ask",
+   "filePath": "agentdef/init.py",
+   "lineRange": [
+    39,
+    43
+   ],
+   "summary": "Interactive prompt helper: returns the default immediately when yes=True (non-interactive/CI mode), otherwise prompts the user via input() and falls back to the default on empty response.",
+   "tags": [
+    "interactive-prompt",
+    "helper"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/init.py:init_agent",
+   "type": "function",
+   "name": "init_agent",
+   "filePath": "agentdef/init.py",
+   "lineRange": [
+    46,
+    75
+   ],
+   "summary": "Scaffolds a new AgentDef agent directory: creates the directory, refuses to overwrite an existing manifest.yaml, gathers name/role/frameworks (interactively or via provided args), validates frameworks against ADAPTERS, then writes agent.md, instructions/core.md, README.md, and manifest.yaml (including a sync: section per requested framework).",
+   "tags": [
+    "scaffolding",
+    "init",
+    "file-generation",
+    "validation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:agentdef/registry.py:AdapterSpec",
+   "type": "class",
+   "name": "AdapterSpec",
+   "filePath": "agentdef/registry.py",
+   "lineRange": [
+    14,
+    18
+   ],
+   "summary": "Frozen dataclass describing one adapter: framework name, dotted module path exposing generate(agent)+main(), canonical output filename, and human-readable description. Instances populate the ADAPTERS registry dict.",
+   "tags": [
+    "dataclass",
+    "registry-entry",
+    "adapter"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:agentdef/registry.py:ImporterSpec",
+   "type": "class",
+   "name": "ImporterSpec",
+   "filePath": "agentdef/registry.py",
+   "lineRange": [
+    22,
+    26
+   ],
+   "summary": "Frozen dataclass describing one importer: framework name, dotted module path, entrypoint function name with signature (source, output, **kwargs) -> Path, and a source-format description. Instances populate the IMPORTERS registry dict.",
+   "tags": [
+    "dataclass",
+    "registry-entry",
+    "importer"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:agentdef/sync.py:SyncError",
+   "type": "class",
+   "name": "SyncError",
+   "filePath": "agentdef/sync.py",
+   "lineRange": [
+    24,
+    25
+   ],
+   "summary": "Exception raised for invalid or unsafe sync configuration: malformed manifest 'sync' entries, unknown framework names, sync output paths that escape the agent directory, or an empty sync list.",
+   "tags": [
+    "exception",
+    "error-type",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:agentdef/sync.py:load_targets",
+   "type": "function",
+   "name": "load_targets",
+   "filePath": "agentdef/sync.py",
+   "lineRange": [
+    28,
+    43
+   ],
+   "summary": "Parses the manifest's 'sync' list into (framework, resolved-output-path) tuples, raising SyncError for malformed entries, unknown frameworks not present in ADAPTERS, or output paths that resolve outside the agent directory (path-traversal guard).",
+   "tags": [
+    "manifest-parsing",
+    "validation",
+    "security-check"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:agentdef/sync.py:sync",
+   "type": "function",
+   "name": "sync",
+   "filePath": "agentdef/sync.py",
+   "lineRange": [
+    46,
+    68
+   ],
+   "summary": "Core sync routine: loads the agent's manifest via the claude adapter module (dynamically imported through ADAPTERS), resolves sync targets via load_targets, then for each target dynamically imports the corresponding adapter module and regenerates its output, comparing against the existing file to classify each target as changed/stale or up-to-date. In --check mode nothing is written; otherwise changed outputs are written to disk.",
+   "tags": [
+    "sync",
+    "codegen",
+    "drift-detection",
+    "importlib"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "config:agentdef/schemas/agent.schema.json",
+   "type": "config",
+   "name": "agent.schema.json",
+   "filePath": "agentdef/schemas/agent.schema.json",
+   "summary": "Descriptive (non-enforced) JSON Schema documenting the expected markdown section structure of an agent's agent.md file. Defines an object with a 'sections' property covering role (required), objectives, style, priorities, and avoid, each as string or array-of-string fields. The schema's own '_validation_notes' field states it is NOT consumed by validate.py at runtime; the actual validator instead parses agent.md as markdown directly and checks for a Role section. Serves as a reference/documentation artifact for tooling authors rather than a runtime contract.",
+   "tags": [
+    "json-schema",
+    "agent-md",
+    "documentation-only",
+    "agentdef-spec",
+    "config"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:agentdef/schemas/manifest.schema.json",
+   "type": "config",
+   "name": "manifest.schema.json",
+   "filePath": "agentdef/schemas/manifest.schema.json",
+   "summary": "JSON Schema (2020-12) for an AgentDef agent's manifest.yaml composition layer, which is actively validated by validate.py. Requires 'name' (lowercase slug pattern) and 'instructions' (non-empty array of instruction file paths). Optional fields: 'version' (semver-like pattern), 'description', 'skills' (skill directory paths), 'workflows' (workflow file paths), 'tools' (generic tool definition file paths \u2014 not MCP-specific), 'input_types', 'capabilities', and 'spec_version' (string or number, e.g. '0.5'). Allows additionalProperties, keeping the schema forward-compatible. Does not contain an explicit nested MCP/server schema or $ref to mcp.schema.json; its 'tools' field is a flat list of file path strings, so any MCP declarations would live in a separate file (e.g. tools/mcp.yaml) referenced only by path, not by schema composition.",
+   "tags": [
+    "json-schema",
+    "manifest-yaml",
+    "agentdef-spec",
+    "validated",
+    "config"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "config:agentdef/schemas/mcp.schema.json",
+   "type": "config",
+   "name": "mcp.schema.json",
+   "filePath": "agentdef/schemas/mcp.schema.json",
+   "summary": "NEW JSON Schema (draft-07) validating the MCP (Model Context Protocol) tool/server declaration file for an AgentDef agent, conventionally tools/mcp.yaml. Root object requires a 'servers' property: a map keyed by arbitrary server name, where each server entry is an object that may declare 'command' (string, stdio launch command), 'args' (array of string CLI arguments), 'url' (string, HTTP/SSE server endpoint), 'env' (array of required environment variable NAMES only \u2014 the schema explicitly documents that secret values must never be included), and 'description' (free-text string). Each server entry must satisfy an anyOf constraint requiring either 'command' (for stdio-launched servers) or 'url' (for HTTP/SSE servers), modeling MCP's two transport types. This schema defines how an agent declares which MCP servers/tools it depends on, separate from and referenced by path from manifest.yaml's generic 'tools' list rather than through direct schema composition.",
+   "tags": [
+    "json-schema",
+    "mcp",
+    "model-context-protocol",
+    "tool-declaration",
+    "new-file",
+    "agentdef-spec",
+    "config"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:agentdef/__init__.py",
+   "type": "file",
+   "name": "agentdef/__init__.py",
+   "path": "agentdef/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker",
+    "version"
+   ],
+   "complexity": "simple",
+   "summary": "Top-level package marker for agentdef. Docstring identifies the package as 'AgentDef \u2014 portable, framework-agnostic AI agent definitions' and defines __version__ = \"0.2.0\". Does not re-export a public API surface (no imports/exports beyond the version string)."
+  },
+  {
+   "id": "file:agentdef/adapters/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/__init__.py",
+   "path": "agentdef/adapters/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Package marker for the adapters subpackage. Contains only a docstring: 'AgentDef adapters (AgentDef -> framework file)'. No executable logic or re-exports."
+  },
+  {
+   "id": "file:agentdef/adapters/assistants/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/assistants/__init__.py",
+   "path": "agentdef/adapters/assistants/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.assistants as a Python subpackage for the assistants (OpenAI Assistants-style) forward adapter."
+  },
+  {
+   "id": "file:agentdef/adapters/claude/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/claude/__init__.py",
+   "path": "agentdef/adapters/claude/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.claude as a Python subpackage for the Claude forward adapter (generates CLAUDE.md)."
+  },
+  {
+   "id": "file:agentdef/adapters/copilot/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/copilot/__init__.py",
+   "path": "agentdef/adapters/copilot/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.copilot as a Python subpackage for the GitHub Copilot forward adapter (generates .github/copilot-instructions.md)."
+  },
+  {
+   "id": "file:agentdef/adapters/crewai/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/crewai/__init__.py",
+   "path": "agentdef/adapters/crewai/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.crewai as a Python subpackage for the CrewAI forward adapter."
+  },
+  {
+   "id": "file:agentdef/adapters/cursor/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/cursor/__init__.py",
+   "path": "agentdef/adapters/cursor/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.cursor as a Python subpackage for the Cursor forward adapter (generates cursor-rules.md)."
+  },
+  {
+   "id": "file:agentdef/adapters/langgraph/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/langgraph/__init__.py",
+   "path": "agentdef/adapters/langgraph/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.langgraph as a Python subpackage for the LangGraph forward adapter (generates a graph.py StateGraph scaffold)."
+  },
+  {
+   "id": "file:agentdef/adapters/m365copilot/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/m365copilot/__init__.py",
+   "path": "agentdef/adapters/m365copilot/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.m365copilot as a Python subpackage for the Microsoft 365 Copilot forward adapter."
+  },
+  {
+   "id": "file:agentdef/adapters/openai/__init__.py",
+   "type": "file",
+   "name": "agentdef/adapters/openai/__init__.py",
+   "path": "agentdef/adapters/openai/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.adapters.openai as a Python subpackage for the OpenAI forward adapter (generates AGENTS.md)."
+  },
+  {
+   "id": "file:agentdef/importers/__init__.py",
+   "type": "file",
+   "name": "agentdef/importers/__init__.py",
+   "path": "agentdef/importers/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Package marker for the importers subpackage. Contains only a docstring: 'AgentDef importers (framework file -> AgentDef)'. No executable logic or re-exports."
+  },
+  {
+   "id": "file:agentdef/importers/claude/__init__.py",
+   "type": "file",
+   "name": "agentdef/importers/claude/__init__.py",
+   "path": "agentdef/importers/claude/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.importers.claude as a Python subpackage for the Claude reverse importer (imports CLAUDE.md or Claude Code subagent files into AgentDef)."
+  },
+  {
+   "id": "file:agentdef/importers/copilot/__init__.py",
+   "type": "file",
+   "name": "agentdef/importers/copilot/__init__.py",
+   "path": "agentdef/importers/copilot/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.importers.copilot as a Python subpackage for the GitHub Copilot reverse importer."
+  },
+  {
+   "id": "file:agentdef/importers/copilotstudio/__init__.py",
+   "type": "file",
+   "name": "agentdef/importers/copilotstudio/__init__.py",
+   "path": "agentdef/importers/copilotstudio/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.importers.copilotstudio as a Python subpackage for the Microsoft Copilot Studio reverse importer (one-directional; no forward adapter exists yet)."
+  },
+  {
+   "id": "file:agentdef/importers/crewai/__init__.py",
+   "type": "file",
+   "name": "agentdef/importers/crewai/__init__.py",
+   "path": "agentdef/importers/crewai/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.importers.crewai as a Python subpackage for the CrewAI reverse importer."
+  },
+  {
+   "id": "file:agentdef/importers/cursor/__init__.py",
+   "type": "file",
+   "name": "agentdef/importers/cursor/__init__.py",
+   "path": "agentdef/importers/cursor/__init__.py",
+   "language": "python",
+   "tags": [
+    "package-marker"
+   ],
+   "complexity": "simple",
+   "summary": "Empty package marker establishing agentdef.importers.cursor as a Python subpackage for the Cursor reverse importer."
+  },
+  {
+   "id": "document:agentdef/adapters/README.md",
+   "type": "document",
+   "name": "adapters/README.md",
+   "path": "agentdef/adapters/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "overview",
+    "adapters"
+   ],
+   "complexity": "simple",
+   "summary": "Top-level overview of the adapters package: adapters translate an AgentDef agent directory into framework-specific files (AgentDef Directory -> Adapter -> Framework-Specific File(s)). Lists all five documented adapters (claude -> CLAUDE.md, openai -> AGENTS.md, cursor -> cursor-rules.md, copilot -> .github/copilot-instructions.md, langgraph -> graph.py scaffold) with their CLI commands, documents the common invocation pattern `python adapters/<framework>/generate.py <agent-directory> [--output <file>]`, and gives guidance for writing a new adapter (read agent.md/manifest.yaml, transform, output; shared loading logic lives in _common.py)."
+  },
+  {
+   "id": "document:agentdef/adapters/claude/README.md",
+   "type": "document",
+   "name": "adapters/claude/README.md",
+   "path": "agentdef/adapters/claude/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "adapter",
+    "claude"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the Claude forward adapter: generates a single CLAUDE.md file from an AgentDef agent directory by concatenating identity, instructions, skills, and workflows. Covers usage (`python generate.py <agent-dir> [--output CLAUDE.md]`), field mapping, and round-trip fidelity per SPEC Appendix E."
+  },
+  {
+   "id": "document:agentdef/adapters/copilot/README.md",
+   "type": "document",
+   "name": "adapters/copilot/README.md",
+   "path": "agentdef/adapters/copilot/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "adapter",
+    "copilot"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the GitHub Copilot forward adapter: generates .github/copilot-instructions.md from an AgentDef agent directory, mapping AgentDef components to Copilot's instructions, extensions, and task guidance sections. Covers usage, mapping, and round-trip fidelity per SPEC Appendix E."
+  },
+  {
+   "id": "document:agentdef/adapters/cursor/README.md",
+   "type": "document",
+   "name": "adapters/cursor/README.md",
+   "path": "agentdef/adapters/cursor/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "adapter",
+    "cursor"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the Cursor forward adapter: generates cursor-rules.md from an AgentDef agent directory, mapping AgentDef components to Cursor's rules, macros, and workflow sections. Covers usage and mapping (no round-trip fidelity section)."
+  },
+  {
+   "id": "document:agentdef/adapters/langgraph/README.md",
+   "type": "document",
+   "name": "adapters/langgraph/README.md",
+   "path": "agentdef/adapters/langgraph/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "adapter",
+    "langgraph"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the LangGraph forward adapter: generates a graph.py scaffold containing a StateGraph whose nodes derive from the agent's workflow steps and skills. Explicitly notes generated node implementations are left as TODOs for the developer. Covers usage and mapping."
+  },
+  {
+   "id": "document:agentdef/adapters/openai/README.md",
+   "type": "document",
+   "name": "adapters/openai/README.md",
+   "path": "agentdef/adapters/openai/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "adapter",
+    "openai"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the OpenAI forward adapter: generates AGENTS.md from an AgentDef agent directory, mapping AgentDef components to OpenAI's system instructions, tools, and execution flow sections. Covers usage and mapping."
+  },
+  {
+   "id": "document:agentdef/importers/claude/README.md",
+   "type": "document",
+   "name": "importers/claude/README.md",
+   "path": "agentdef/importers/claude/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "importer",
+    "claude"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the Claude reverse importer: imports a CLAUDE.md file or a Claude Code subagent definition file (.claude/agents/<name>.md-style, as published in community collections like github/awesome-claude-agents and github/awesome-claude-code-subagents) into a conformant AgentDef directory. Described as the reverse of adapters/claude/. Covers usage, three source-shape behaviors, mapping, and round-trip fidelity per SPEC Appendix E. Note: usage examples in the doc text reference `python import.py`, while the actual sibling script (in another batch) is named `importer.py` post-rename."
+  },
+  {
+   "id": "document:agentdef/importers/copilot/README.md",
+   "type": "document",
+   "name": "importers/copilot/README.md",
+   "path": "agentdef/importers/copilot/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "importer",
+    "copilot"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the GitHub Copilot reverse importer: imports .github/copilot-instructions.md (required) plus optional path-scoped .github/instructions/*.instructions.md files (auto-detected sibling instructions/ directory or via --instructions-dir) into a conformant AgentDef directory. Described as the reverse of adapters/copilot/. Covers inputs, usage, behavior, mapping, and round-trip fidelity per SPEC Appendix E."
+  },
+  {
+   "id": "document:agentdef/importers/copilotstudio/README.md",
+   "type": "document",
+   "name": "importers/copilotstudio/README.md",
+   "path": "agentdef/importers/copilotstudio/README.md",
+   "language": "markdown",
+   "tags": [
+    "documentation",
+    "importer",
+    "copilotstudio"
+   ],
+   "complexity": "simple",
+   "summary": "Documents the Microsoft Copilot Studio reverse importer: imports a single <name>.md agent definition file (as published in github/awesome-copilot-studio-agents) into a conformant AgentDef directory. Notes there is currently no forward adapter for Copilot Studio, making this importer one-directional. Describes the optional YAML frontmatter source shape (name, description, domain, vertical, audience, knowledge_sources, language, char_count, rai_reviewed, tested, version, last_updated \u2014 roughly 1 in 15 real-corpus files omit it). Covers usage and mapping."
+  },
+  {
+   "id": "file:agentdef/importers/generic/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Empty package-marker file establishing agentdef.importers.generic as a Python package.",
+   "tags": [
+    "package-marker"
+   ],
+   "filePath": "agentdef/importers/generic/__init__.py"
+  },
+  {
+   "id": "file:agentdef/importers/letta/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Empty package-marker file establishing agentdef.importers.letta as a Python package.",
+   "tags": [
+    "package-marker"
+   ],
+   "filePath": "agentdef/importers/letta/__init__.py"
+  },
+  {
+   "id": "file:agentdef/importers/m365copilot/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Empty package-marker file establishing agentdef.importers.m365copilot as a Python package.",
+   "tags": [
+    "package-marker"
+   ],
+   "filePath": "agentdef/importers/m365copilot/__init__.py"
+  },
+  {
+   "id": "file:agentdef/importers/openai/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Empty package-marker file establishing agentdef.importers.openai as a Python package.",
+   "tags": [
+    "package-marker"
+   ],
+   "filePath": "agentdef/importers/openai/__init__.py"
+  },
+  {
+   "id": "file:agentdef/validation/__init__.py",
+   "type": "file",
+   "name": "__init__.py",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Package-marker file establishing agentdef.validation as a Python package (single non-empty line, no re-exports detected).",
+   "tags": [
+    "package-marker"
+   ],
+   "filePath": "agentdef/validation/__init__.py"
+  },
+  {
+   "id": "document:agentdef/importers/m365copilot/README.md",
+   "type": "document",
+   "name": "README.md",
+   "language": "markdown",
+   "complexity": "moderate",
+   "summary": "Documents the Microsoft 365 Copilot importer: usage instructions and the field-mapping approach from M365 Copilot agent definitions to the AgentDef spec.",
+   "tags": [
+    "documentation",
+    "importer",
+    "m365-copilot"
+   ],
+   "filePath": "agentdef/importers/m365copilot/README.md"
+  },
+  {
+   "id": "document:agentdef/importers/README.md",
+   "type": "document",
+   "name": "README.md",
+   "language": "markdown",
+   "complexity": "moderate",
+   "summary": "Top-level overview of the agentdef.importers package: lists available importers (generic, letta, m365copilot, openai, and others in sibling batches), general usage, the conversion approach, and a guide for authoring new importers.",
+   "tags": [
+    "documentation",
+    "importer",
+    "overview",
+    "entry-point"
+   ],
+   "filePath": "agentdef/importers/README.md"
+  },
+  {
+   "id": "document:agentdef/validation/requirements.txt",
+   "type": "document",
+   "name": "requirements.txt",
+   "language": "txt",
+   "complexity": "moderate",
+   "summary": "Python dependency pins for the validation package: PyYAML and jsonschema, both required by validate.py.",
+   "tags": [
+    "documentation",
+    "dependencies"
+   ],
+   "filePath": "agentdef/validation/requirements.txt"
+  },
+  {
+   "id": "file:agentdef/validation/validate.py",
+   "type": "file",
+   "name": "validate.py",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "AgentDef spec conformance validator. Checks an agent directory against the AgentDef spec's 7 conformance rules: required files, valid/schema-conformant manifest.yaml, resolvable references, reference containment within the agent directory, spec_version compatibility, and a Role section in agent.md. Provides a CLI entry point (main) that validates one or more agent directories and reports pass/fail with machine-readable error codes.",
+   "tags": [
+    "entry-point",
+    "validation",
+    "cli",
+    "schema-validation",
+    "conformance"
+   ],
+   "filePath": "agentdef/validation/validate.py"
+  },
+  {
+   "id": "class:agentdef/validation/validate.py:ValidationResult",
+   "type": "class",
+   "name": "ValidationResult",
+   "language": "python",
+   "complexity": "simple",
+   "summary": "Accumulates validation errors, warnings, and machine-readable error codes (per SPEC.md Appendix D) for a single agent directory. Exposes a 'valid' property (true iff no errors) and a 'summary()' method that renders a human-readable PASS/FAIL report.",
+   "tags": [
+    "data-model",
+    "validation",
+    "result-object"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    35,
+    66
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:check_spec_version",
+   "type": "function",
+   "name": "check_spec_version",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "NEW check. Validates that manifest.yaml's optional 'spec_version' field, when present, is one of SUPPORTED_SPEC_VERSIONS = (\"0.1\", \"0.2\", \"0.5\"). A missing spec_version is accepted silently (treated as the oldest supported version per SPEC.md S13 compatibility policy). An unrecognized value raises an error with code 'unsupported-spec-version' rather than being guessed at or silently accepted.",
+   "tags": [
+    "validation",
+    "spec-version",
+    "compatibility"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    90,
+    100
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:check_reference_containment",
+   "type": "function",
+   "name": "check_reference_containment",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "NEW check implementing SPEC S10 rule 5. Resolves the agent directory to an absolute canonical path, then for every path listed under the manifest's instructions/workflows/tools (PATH_FIELDS) and skills (DIR_FIELDS) fields, resolves the target path relative to agent_dir and verifies it is contained within (a descendant of, or equal to) the agent directory root. Any reference whose resolved target falls outside the root (e.g. via '../' path-traversal or an absolute path escaping the directory) raises an error with code 'reference-escapes-root'. This guards against path-traversal / references escaping the agent's sandbox, independent of check_references which only checks existence.",
+   "tags": [
+    "validation",
+    "security",
+    "path-traversal"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    103,
+    118
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:check_structure",
+   "type": "function",
+   "name": "check_structure",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Verifies the three required files exist: agent.md, manifest.yaml, instructions/core.md. Emits errors with codes missing-agent-md, missing-manifest, or missing-core-instructions.",
+   "tags": [
+    "validation",
+    "filesystem-check"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    121,
+    129
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:load_manifest",
+   "type": "function",
+   "name": "load_manifest",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Parses manifest.yaml via yaml.safe_load, returning the parsed dict or None. Reports code 'invalid-yaml' if the file fails to parse or does not deserialize to a mapping.",
+   "tags": [
+    "validation",
+    "yaml-parsing",
+    "manifest"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    132,
+    149
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:check_schema",
+   "type": "function",
+   "name": "check_schema",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Validates the parsed manifest against manifest.schema.json using jsonschema.validate. Warns (does not error) if the schema file is missing; reports code 'schema-violation' on validation failure.",
+   "tags": [
+    "validation",
+    "json-schema",
+    "manifest"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    152,
+    165
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:check_references",
+   "type": "function",
+   "name": "check_references",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Verifies every path/dir reference declared in manifest.yaml (PATH_FIELDS and DIR_FIELDS) actually exists on disk, reporting code 'missing-reference' when not, and warning when a 'skills' entry resolves to a file rather than a directory.",
+   "tags": [
+    "validation",
+    "filesystem-check",
+    "manifest"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    168,
+    188
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:check_agent_md",
+   "type": "function",
+   "name": "check_agent_md",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Verifies agent.md contains a Markdown '## Role' (or '# Role') heading via regex; reports code 'missing-role' if absent.",
+   "tags": [
+    "validation",
+    "content-check"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    191,
+    199
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:validate",
+   "type": "function",
+   "name": "validate",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "Orchestrates the full conformance pipeline for one agent directory: resolves paths, runs check_structure and check_agent_md unconditionally, then (if the manifest loads) runs check_schema, check_spec_version, check_reference_containment, and check_references in sequence. Returns the accumulated ValidationResult.",
+   "tags": [
+    "validation",
+    "orchestration",
+    "pipeline"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    206,
+    232
+   ]
+  },
+  {
+   "id": "function:agentdef/validation/validate.py:main",
+   "type": "function",
+   "name": "main",
+   "language": "python",
+   "complexity": "moderate",
+   "summary": "CLI entry point. Parses one or more agent_dirs plus an optional --schema-dir argument, calls validate() on each, prints result.summary(), and exits 1 if any directory failed validation.",
+   "tags": [
+    "entry-point",
+    "cli",
+    "argument-parsing"
+   ],
+   "filePath": "agentdef/validation/validate.py",
+   "lineRange": [
+    235,
+    259
+   ]
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:_lenient_frontmatter_parse",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:_lenient_frontmatter_parse",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:classify_header",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:classify_header",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:find_persona_sentence",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:find_persona_sentence",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:extract_bullets",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:extract_bullets",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "class:agentdef/importers/_common.py:Section",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "class:agentdef/importers/_common.py:Section",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/_common.py",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:split_frontmatter",
+   "target": "function:agentdef/importers/_common.py:_lenient_frontmatter_parse",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "function:agentdef/importers/_common.py:classify_header",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "function:agentdef/importers/_common.py:extract_bullets",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "function:agentdef/importers/_common.py:find_persona_sentence",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.7,
+   "note": "calls writer.set_role/add_objectives/add_style/etc. methods",
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.7,
+   "note": "calls report.map/infer",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "function:agentdef/importers/claude/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "function:agentdef/importers/claude/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "target": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/claude/importer.py:main",
+   "target": "function:agentdef/importers/claude/importer.py:import_claude_md",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:_parse_instructions_file",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:_parse_instructions_file",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "function:agentdef/importers/copilot/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "function:agentdef/importers/copilot/importer.py:_parse_instructions_file",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:_parse_instructions_file",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilot/importer.py:main",
+   "target": "function:agentdef/importers/copilot/importer.py:import_copilot",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:_extract_first_fenced_block",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:_extract_first_fenced_block",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilotstudio/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:_extract_first_fenced_block",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "function:agentdef/importers/_common.py:extract_bullets",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/copilotstudio/importer.py:main",
+   "target": "function:agentdef/importers/copilotstudio/importer.py:import_copilotstudio",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "function:agentdef/importers/crewai/importer.py:import_crewai",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "function:agentdef/importers/crewai/importer.py:import_crewai",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "function:agentdef/importers/crewai/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "function:agentdef/importers/crewai/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/crewai/importer.py:import_crewai",
+   "target": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/crewai/importer.py:_import_one",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/crewai/importer.py:main",
+   "target": "function:agentdef/importers/crewai/importer.py:import_crewai",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:_strip_label",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:_strip_label",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "function:agentdef/importers/cursor/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/cursor/importer.py:_strip_label",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/cursor/importer.py:main",
+   "target": "function:agentdef/importers/cursor/importer.py:import_cursor",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/generic/importer.py",
+   "target": "function:agentdef/importers/generic/importer.py:import_generic",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/generic/importer.py",
+   "target": "function:agentdef/importers/generic/importer.py:import_generic",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/generic/importer.py",
+   "target": "function:agentdef/importers/generic/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/generic/importer.py",
+   "target": "function:agentdef/importers/generic/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/generic/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:import_generic",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:import_generic",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:import_generic",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:import_generic",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:import_generic",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:import_generic",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/generic/importer.py:main",
+   "target": "function:agentdef/importers/generic/importer.py:import_generic",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/letta/importer.py",
+   "target": "function:agentdef/importers/letta/importer.py:import_letta",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/letta/importer.py",
+   "target": "function:agentdef/importers/letta/importer.py:import_letta",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/letta/importer.py",
+   "target": "function:agentdef/importers/letta/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/letta/importer.py",
+   "target": "function:agentdef/importers/letta/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/letta/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/letta/importer.py:import_letta",
+   "target": "function:agentdef/importers/_common.py:find_persona_sentence",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/letta/importer.py:import_letta",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/letta/importer.py:import_letta",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/letta/importer.py:import_letta",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/letta/importer.py:main",
+   "target": "function:agentdef/importers/letta/importer.py:import_letta",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:_render_capability",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:_render_capability",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:_render_action",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:_render_action",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "function:agentdef/importers/m365copilot/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "target": "function:agentdef/importers/m365copilot/importer.py:_render_capability",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "target": "function:agentdef/importers/m365copilot/importer.py:_render_action",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "target": "function:agentdef/importers/_common.py:find_persona_sentence",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/m365copilot/importer.py:main",
+   "target": "function:agentdef/importers/m365copilot/importer.py:import_m365copilot",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:_strip_label",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:_strip_label",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:import_openai",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:import_openai",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:main",
+   "type": "contains",
+   "weight": 1.0,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "function:agentdef/importers/openai/importer.py:main",
+   "type": "exports",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/openai/importer.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "imports",
+   "weight": 0.7,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "function:agentdef/importers/_common.py:split_frontmatter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "function:agentdef/importers/_common.py:slugify",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "class:agentdef/importers/_common.py:AgentDefWriter",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:import_openai",
+   "target": "class:agentdef/importers/_common.py:ImportReport",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_roundtrip_segments",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/openai/importer.py:_strip_label",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:generic_markdown_import",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:_import_roundtrip",
+   "target": "function:agentdef/importers/_common.py:split_sections",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/importers/openai/importer.py:main",
+   "target": "function:agentdef/importers/openai/importer.py:import_openai",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/cursor/importer.py",
+   "target": "file:agentdef/importers/openai/importer.py",
+   "type": "related",
+   "weight": 0.5,
+   "note": "Both implement an identical _strip_label helper and _import_roundtrip structure keyed on the same GENERATED_MARKER constant.",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "file:agentdef/importers/copilot/importer.py",
+   "type": "related",
+   "weight": 0.5,
+   "note": "Both implement round-trip recovery keyed on the same GENERATED_MARKER constant and both call split_roundtrip_segments/generic_markdown_import from _common.py.",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/claude/importer.py",
+   "target": "file:agentdef/importers/cursor/importer.py",
+   "type": "related",
+   "weight": 0.4,
+   "note": "Sibling round-trip importers sharing the GENERATED_MARKER convention and split_roundtrip_segments dependency.",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/copilot/importer.py",
+   "target": "file:agentdef/importers/openai/importer.py",
+   "type": "related",
+   "weight": 0.4,
+   "note": "Sibling round-trip importers sharing the GENERATED_MARKER convention and split_roundtrip_segments dependency.",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/generic/importer.py",
+   "target": "file:agentdef/importers/copilotstudio/importer.py",
+   "type": "related",
+   "weight": 0.4,
+   "note": "copilotstudio's importer re-uses generic_markdown_import as its own fallback classifier for the extracted Instructions block, the same engine generic/importer.py wraps directly.",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/crewai/importer.py",
+   "target": "file:agentdef/importers/letta/importer.py",
+   "type": "related",
+   "weight": 0.3,
+   "note": "Both are structured-data (YAML/JSON) importers rather than markdown classifiers, and both explicitly preserve/report unrecognized source fields verbatim instead of using generic_markdown_import.",
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/importers/m365copilot/importer.py",
+   "target": "file:agentdef/importers/letta/importer.py",
+   "type": "related",
+   "weight": 0.3,
+   "note": "Both are JSON-manifest importers for a vendor-specific agent format with a static field-mapping table (CAPABILITY_DESCRIPTIONS / STATE_FIELDS) rather than markdown classification.",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/_common.py",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/_common.py",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "class:agentdef/adapters/_common.py:AgentDef",
+   "target": "function:agentdef/adapters/_common.py:AgentDef.__init__",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "class:agentdef/adapters/_common.py:AgentDef",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "class:agentdef/adapters/_common.py:AgentDef",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._load_manifest",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "class:agentdef/adapters/_common.py:AgentDef",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read_list",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "class:agentdef/adapters/_common.py:AgentDef",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read_skills",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/_common.py",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/_common.py",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/_common.py:AgentDef.__init__",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/_common.py:AgentDef.__init__",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._load_manifest",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/_common.py:AgentDef.__init__",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read_list",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/_common.py:AgentDef.__init__",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read_skills",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/_common.py:AgentDef._read_list",
+   "target": "function:agentdef/adapters/_common.py:AgentDef._read",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/assistants/generate.py",
+   "target": "function:agentdef/adapters/assistants/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/assistants/generate.py",
+   "target": "function:agentdef/adapters/assistants/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/assistants/generate.py",
+   "target": "function:agentdef/adapters/assistants/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/assistants/generate.py",
+   "target": "function:agentdef/adapters/assistants/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/assistants/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/assistants/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/assistants/generate.py:main",
+   "target": "function:agentdef/adapters/assistants/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/assistants/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "function:agentdef/adapters/claude/generate.py:_mcp_section",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "function:agentdef/adapters/claude/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "function:agentdef/adapters/claude/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "function:agentdef/adapters/claude/generate.py:_mcp_section",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "function:agentdef/adapters/claude/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "function:agentdef/adapters/claude/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/claude/generate.py:generate",
+   "target": "function:agentdef/adapters/claude/generate.py:_mcp_section",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/claude/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/claude/generate.py:main",
+   "target": "function:agentdef/adapters/claude/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/claude/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "function:agentdef/adapters/copilot/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "function:agentdef/adapters/copilot/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "function:agentdef/adapters/copilot/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "function:agentdef/adapters/copilot/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/copilot/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/copilot/generate.py:main",
+   "target": "function:agentdef/adapters/copilot/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/copilot/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "function:agentdef/adapters/crewai/generate.py:_section",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "function:agentdef/adapters/crewai/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "function:agentdef/adapters/crewai/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "function:agentdef/adapters/crewai/generate.py:_section",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "function:agentdef/adapters/crewai/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "function:agentdef/adapters/crewai/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/crewai/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/crewai/generate.py:generate",
+   "target": "function:agentdef/adapters/crewai/generate.py:_section",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/crewai/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/crewai/generate.py:main",
+   "target": "function:agentdef/adapters/crewai/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/crewai/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/cursor/generate.py",
+   "target": "function:agentdef/adapters/cursor/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/cursor/generate.py",
+   "target": "function:agentdef/adapters/cursor/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/cursor/generate.py",
+   "target": "function:agentdef/adapters/cursor/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/cursor/generate.py",
+   "target": "function:agentdef/adapters/cursor/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/cursor/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/cursor/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/cursor/generate.py:main",
+   "target": "function:agentdef/adapters/cursor/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/cursor/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:_extract_steps",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:_extract_role",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:_extract_steps",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:_extract_role",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "function:agentdef/adapters/langgraph/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/langgraph/generate.py:generate",
+   "target": "function:agentdef/adapters/langgraph/generate.py:_extract_role",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/langgraph/generate.py:generate",
+   "target": "function:agentdef/adapters/langgraph/generate.py:_extract_steps",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/langgraph/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/langgraph/generate.py:main",
+   "target": "function:agentdef/adapters/langgraph/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/langgraph/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/m365copilot/generate.py",
+   "target": "function:agentdef/adapters/m365copilot/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/m365copilot/generate.py",
+   "target": "function:agentdef/adapters/m365copilot/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/m365copilot/generate.py",
+   "target": "function:agentdef/adapters/m365copilot/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/m365copilot/generate.py",
+   "target": "function:agentdef/adapters/m365copilot/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/m365copilot/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/m365copilot/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/m365copilot/generate.py:main",
+   "target": "function:agentdef/adapters/m365copilot/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/m365copilot/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/openai/generate.py",
+   "target": "function:agentdef/adapters/openai/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/adapters/openai/generate.py",
+   "target": "function:agentdef/adapters/openai/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/openai/generate.py",
+   "target": "function:agentdef/adapters/openai/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/adapters/openai/generate.py",
+   "target": "function:agentdef/adapters/openai/generate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/adapters/openai/generate.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/openai/generate.py:main",
+   "target": "class:agentdef/adapters/_common.py:AgentDef",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/openai/generate.py:main",
+   "target": "function:agentdef/adapters/openai/generate.py:generate",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/adapters/openai/generate.py:main",
+   "target": "function:agentdef/adapters/_common.py:write_output",
+   "direction": "forward"
+  },
+  {
+   "type": "related",
+   "weight": 0.5,
+   "source": "file:agentdef/adapters/openai/generate.py",
+   "target": "file:agentdef/adapters/assistants/generate.py",
+   "direction": "forward"
+  },
+  {
+   "type": "related",
+   "weight": 0.3,
+   "source": "file:agentdef/adapters/claude/generate.py",
+   "target": "file:agentdef/adapters/m365copilot/generate.py",
+   "direction": "forward"
+  },
+  {
+   "type": "related",
+   "weight": 0.4,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "file:agentdef/adapters/cursor/generate.py",
+   "direction": "forward"
+  },
+  {
+   "type": "related",
+   "weight": 0.4,
+   "source": "file:agentdef/adapters/copilot/generate.py",
+   "target": "file:agentdef/adapters/openai/generate.py",
+   "direction": "forward"
+  },
+  {
+   "type": "related",
+   "weight": 0.4,
+   "source": "file:agentdef/adapters/cursor/generate.py",
+   "target": "file:agentdef/adapters/openai/generate.py",
+   "direction": "forward"
+  },
+  {
+   "type": "related",
+   "weight": 0.3,
+   "source": "file:agentdef/adapters/langgraph/generate.py",
+   "target": "file:agentdef/adapters/crewai/generate.py",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_validate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_adapt",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_import",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_init",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_sync",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_list",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:build_parser",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/init.py",
+   "target": "function:agentdef/init.py:_ask",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/init.py",
+   "target": "function:agentdef/init.py:init_agent",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/registry.py",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/registry.py",
+   "target": "class:agentdef/registry.py:ImporterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/sync.py",
+   "target": "class:agentdef/sync.py:SyncError",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/sync.py",
+   "target": "function:agentdef/sync.py:load_targets",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/sync.py",
+   "target": "function:agentdef/sync.py:sync",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_validate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_adapt",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_import",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_init",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_sync",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:cmd_list",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:build_parser",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/cli.py",
+   "target": "function:agentdef/cli.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/init.py",
+   "target": "function:agentdef/init.py:init_agent",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/registry.py",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/registry.py",
+   "target": "class:agentdef/registry.py:ImporterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/sync.py",
+   "target": "class:agentdef/sync.py:SyncError",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/sync.py",
+   "target": "function:agentdef/sync.py:load_targets",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 0.8,
+   "source": "file:agentdef/sync.py",
+   "target": "function:agentdef/sync.py:sync",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/cli.py",
+   "target": "file:agentdef/registry.py",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/init.py",
+   "target": "file:agentdef/registry.py",
+   "direction": "forward"
+  },
+  {
+   "type": "imports",
+   "weight": 0.7,
+   "source": "file:agentdef/sync.py",
+   "target": "file:agentdef/registry.py",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_init",
+   "target": "function:agentdef/init.py:init_agent",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_sync",
+   "target": "function:agentdef/sync.py:sync",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/init.py:init_agent",
+   "target": "function:agentdef/init.py:_ask",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/sync.py:sync",
+   "target": "function:agentdef/sync.py:load_targets",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_adapt",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_import",
+   "target": "class:agentdef/registry.py:ImporterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_list",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_list",
+   "target": "class:agentdef/registry.py:ImporterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/init.py:init_agent",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/sync.py:load_targets",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/sync.py:sync",
+   "target": "class:agentdef/registry.py:AdapterSpec",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/cli.py:cmd_sync",
+   "target": "class:agentdef/sync.py:SyncError",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/sync.py:load_targets",
+   "target": "class:agentdef/sync.py:SyncError",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 0.8,
+   "source": "function:agentdef/sync.py:sync",
+   "target": "class:agentdef/sync.py:SyncError",
+   "direction": "forward"
+  },
+  {
+   "type": "depends_on",
+   "weight": 0.6,
+   "source": "function:agentdef/cli.py:cmd_adapt",
+   "target": "file:agentdef/registry.py",
+   "direction": "forward"
+  },
+  {
+   "type": "depends_on",
+   "weight": 0.6,
+   "source": "function:agentdef/cli.py:cmd_import",
+   "target": "file:agentdef/registry.py",
+   "direction": "forward"
+  },
+  {
+   "source": "config:agentdef/schemas/manifest.schema.json",
+   "target": "config:agentdef/schemas/agent.schema.json",
+   "type": "related",
+   "summary": "Both schemas describe sibling files within the same AgentDef agent directory layout (agent.md and manifest.yaml) and are part of the same spec-0.5.0 schema family under agentdef/schemas/; no direct $ref between them.",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "config:agentdef/schemas/manifest.schema.json",
+   "target": "config:agentdef/schemas/mcp.schema.json",
+   "type": "related",
+   "summary": "manifest.yaml's generic 'tools' array is the conceptual place an agent lists tool definition file paths, one of which (conventionally tools/mcp.yaml) is validated by mcp.schema.json; the link is by file-path convention and shared spec membership, not a schema $ref or nested property, since manifest.schema.json has no MCP-specific field.",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "config:agentdef/schemas/mcp.schema.json",
+   "target": "config:agentdef/schemas/agent.schema.json",
+   "type": "related",
+   "summary": "Both are part of the same AgentDef schema set validated against a single agent directory; no direct content cross-reference exists between agent identity (agent.md) and MCP server declarations.",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_spec_version",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_reference_containment",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_structure",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:load_manifest",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_schema",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_references",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_agent_md",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:validate",
+   "direction": "forward"
+  },
+  {
+   "type": "contains",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_spec_version",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_reference_containment",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_structure",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:load_manifest",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_schema",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_references",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:check_agent_md",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:validate",
+   "direction": "forward"
+  },
+  {
+   "type": "exports",
+   "weight": 1.0,
+   "source": "file:agentdef/validation/validate.py",
+   "target": "function:agentdef/validation/validate.py:main",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:check_structure",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:check_agent_md",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:load_manifest",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:check_schema",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:check_spec_version",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:check_reference_containment",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "function:agentdef/validation/validate.py:check_references",
+   "direction": "forward"
+  },
+  {
+   "type": "calls",
+   "weight": 1.0,
+   "source": "function:agentdef/validation/validate.py:main",
+   "target": "function:agentdef/validation/validate.py:validate",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:check_spec_version",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:check_reference_containment",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:check_structure",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:load_manifest",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:check_schema",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:check_references",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:check_agent_md",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "uses",
+   "weight": 0.6,
+   "source": "function:agentdef/validation/validate.py:validate",
+   "target": "class:agentdef/validation/validate.py:ValidationResult",
+   "direction": "forward"
+  },
+  {
+   "type": "documents",
+   "weight": 0.4,
+   "source": "document:agentdef/validation/requirements.txt",
+   "target": "file:agentdef/validation/validate.py",
+   "direction": "forward"
+  },
+  {
+   "source": "function:agentdef/cli.py:cmd_init",
+   "target": "function:agentdef/init.py:_ask",
+   "type": "calls",
+   "weight": 0.8,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/cli.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "type": "depends_on",
+   "weight": 0.6,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/cli.py",
+   "target": "file:agentdef/importers/_common.py",
+   "type": "depends_on",
+   "weight": 0.6,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/cli.py",
+   "target": "file:agentdef/validation/validate.py",
+   "type": "depends_on",
+   "weight": 0.6,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/init.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "type": "depends_on",
+   "weight": 0.6,
+   "direction": "forward"
+  },
+  {
+   "source": "file:agentdef/sync.py",
+   "target": "file:agentdef/adapters/_common.py",
+   "type": "depends_on",
+   "weight": 0.6,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/adapters/claude/README.md",
+   "target": "file:agentdef/adapters/claude/generate.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/adapters/copilot/README.md",
+   "target": "file:agentdef/adapters/copilot/generate.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/adapters/cursor/README.md",
+   "target": "file:agentdef/adapters/cursor/generate.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/adapters/langgraph/README.md",
+   "target": "file:agentdef/adapters/langgraph/generate.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/adapters/openai/README.md",
+   "target": "file:agentdef/adapters/openai/generate.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/claude/README.md",
+   "target": "file:agentdef/importers/claude/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/copilot/README.md",
+   "target": "file:agentdef/importers/copilot/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/copilotstudio/README.md",
+   "target": "file:agentdef/importers/copilotstudio/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/README.md",
+   "target": "file:agentdef/importers/generic/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/README.md",
+   "target": "file:agentdef/importers/letta/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/README.md",
+   "target": "file:agentdef/importers/openai/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/README.md",
+   "target": "file:agentdef/importers/m365copilot/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  },
+  {
+   "source": "document:agentdef/importers/m365copilot/README.md",
+   "target": "file:agentdef/importers/m365copilot/importer.py",
+   "type": "documents",
+   "weight": 0.5,
+   "direction": "forward"
+  }
+ ],
+ "layers": [
+  {
+   "id": "layer:cli-orchestration",
+   "name": "CLI & orchestration",
+   "description": "The agentdef console-script entry point and its supporting orchestration modules: subcommand dispatch (validate/adapt/import/list/init/sync), interactive agent scaffolding (init), manifest-driven output sync with CI drift checking (sync), and the static framework registry (registry.py) that both consume to resolve adapter/importer modules by name.",
+   "nodeIds": [
+    "file:agentdef/__init__.py",
+    "file:agentdef/cli.py",
+    "file:agentdef/init.py",
+    "file:agentdef/registry.py",
+    "file:agentdef/sync.py"
+   ]
+  },
+  {
+   "id": "layer:adapters",
+   "name": "Forward adapters",
+   "description": "Adapter modules and their READMEs that translate a canonical AgentDef agent directory into framework-specific output: Claude (CLAUDE.md), OpenAI (AGENTS.md), OpenAI Assistants (API create payload), Cursor (cursor-rules.md), GitHub Copilot (copilot-instructions.md), LangGraph (graph.py scaffold), Microsoft 365 Copilot (declarativeAgent.json), and CrewAI (crew/agent scaffold) \u2014 all sharing the AgentDef-loading helpers in adapters/_common.py.",
+   "nodeIds": [
+    "file:agentdef/adapters/__init__.py",
+    "file:agentdef/adapters/_common.py",
+    "file:agentdef/adapters/assistants/__init__.py",
+    "file:agentdef/adapters/assistants/generate.py",
+    "file:agentdef/adapters/claude/__init__.py",
+    "file:agentdef/adapters/claude/generate.py",
+    "file:agentdef/adapters/copilot/__init__.py",
+    "file:agentdef/adapters/copilot/generate.py",
+    "file:agentdef/adapters/crewai/__init__.py",
+    "file:agentdef/adapters/crewai/generate.py",
+    "file:agentdef/adapters/cursor/__init__.py",
+    "file:agentdef/adapters/cursor/generate.py",
+    "file:agentdef/adapters/langgraph/__init__.py",
+    "file:agentdef/adapters/langgraph/generate.py",
+    "file:agentdef/adapters/m365copilot/__init__.py",
+    "file:agentdef/adapters/m365copilot/generate.py",
+    "file:agentdef/adapters/openai/__init__.py",
+    "file:agentdef/adapters/openai/generate.py",
+    "document:agentdef/adapters/README.md",
+    "document:agentdef/adapters/claude/README.md",
+    "document:agentdef/adapters/copilot/README.md",
+    "document:agentdef/adapters/cursor/README.md",
+    "document:agentdef/adapters/langgraph/README.md",
+    "document:agentdef/adapters/openai/README.md"
+   ]
+  },
+  {
+   "id": "layer:importers",
+   "name": "Reverse importers",
+   "description": "Importer modules and their READMEs that convert a framework-native agent definition back into a canonical AgentDef directory: Claude, GitHub Copilot, Microsoft Copilot Studio, Microsoft 365 Copilot, Cursor, CrewAI, Letta, OpenAI (AGENTS.md), and a generic Markdown fallback \u2014 all sharing parsing and directory-writing helpers in importers/_common.py, including round-trip detection for files AgentDef itself previously generated.",
+   "nodeIds": [
+    "file:agentdef/importers/__init__.py",
+    "file:agentdef/importers/_common.py",
+    "file:agentdef/importers/claude/__init__.py",
+    "file:agentdef/importers/claude/importer.py",
+    "file:agentdef/importers/copilot/__init__.py",
+    "file:agentdef/importers/copilot/importer.py",
+    "file:agentdef/importers/copilotstudio/__init__.py",
+    "file:agentdef/importers/copilotstudio/importer.py",
+    "file:agentdef/importers/crewai/__init__.py",
+    "file:agentdef/importers/crewai/importer.py",
+    "file:agentdef/importers/cursor/__init__.py",
+    "file:agentdef/importers/cursor/importer.py",
+    "file:agentdef/importers/generic/__init__.py",
+    "file:agentdef/importers/generic/importer.py",
+    "file:agentdef/importers/letta/__init__.py",
+    "file:agentdef/importers/letta/importer.py",
+    "file:agentdef/importers/m365copilot/__init__.py",
+    "file:agentdef/importers/m365copilot/importer.py",
+    "file:agentdef/importers/openai/__init__.py",
+    "file:agentdef/importers/openai/importer.py",
+    "document:agentdef/importers/README.md",
+    "document:agentdef/importers/claude/README.md",
+    "document:agentdef/importers/copilot/README.md",
+    "document:agentdef/importers/copilotstudio/README.md",
+    "document:agentdef/importers/m365copilot/README.md"
+   ]
+  },
+  {
+   "id": "layer:validation",
+   "name": "Validation",
+   "description": "The conformance-checking engine that validates an AgentDef agent directory against the spec: structural checks, JSON Schema validation, reference resolution and containment, spec-version compatibility, and the Role-section check in agent.md.",
+   "nodeIds": [
+    "file:agentdef/validation/__init__.py",
+    "file:agentdef/validation/validate.py",
+    "document:agentdef/validation/requirements.txt"
+   ]
+  },
+  {
+   "id": "layer:schemas",
+   "name": "Schemas",
+   "description": "JSON Schema definitions implementing the AgentDef specification's structural rules: agent.md frontmatter, manifest.yaml shape, and the MCP (Model Context Protocol) server/tool declaration format used by the Claude adapter's MCP section renderer.",
+   "nodeIds": [
+    "config:agentdef/schemas/agent.schema.json",
+    "config:agentdef/schemas/manifest.schema.json",
+    "config:agentdef/schemas/mcp.schema.json"
+   ]
+  }
+ ],
+ "tour": [
+  {
+   "order": 1,
+   "title": "Project overview",
+   "description": "Start with the top-level README (outside this pysrc scope, but essential context): AgentDef is a framework-independent way to define an AI agent once and translate it into any target platform's format.",
+   "nodeIds": [
+    "file:agentdef/__init__.py"
+   ]
+  },
+  {
+   "order": 2,
+   "title": "The framework registry",
+   "description": "registry.py is the single static source of truth mapping each supported framework name to its adapter/importer module path and entry point (AdapterSpec/ImporterSpec). cli.py, init.py, and sync.py all consult it before dynamically importing the right module \u2014 this is what lets the CLI validate a framework name before ever touching importlib.",
+   "nodeIds": [
+    "file:agentdef/registry.py"
+   ]
+  },
+  {
+   "order": 3,
+   "title": "The CLI dispatcher",
+   "description": "cli.py wires the six subcommands (validate, adapt, import, list, init, sync) to their handler functions, each of which loads the right module via registry.py and importlib at call time.",
+   "nodeIds": [
+    "file:agentdef/cli.py"
+   ]
+  },
+  {
+   "order": 4,
+   "title": "Scaffolding a new agent",
+   "description": "init.py implements `agentdef init`, interactively (or with --yes) generating a minimal valid agent directory from the starter template.",
+   "nodeIds": [
+    "file:agentdef/init.py"
+   ]
+  },
+  {
+   "order": 5,
+   "title": "Validation engine",
+   "description": "validate.py runs the full conformance pipeline: structure, agent.md Role section, manifest schema, reference existence, reference containment (no path escaping the agent directory), and spec-version compatibility \u2014 the last two are new checks added in this release.",
+   "nodeIds": [
+    "file:agentdef/validation/validate.py",
+    "config:agentdef/schemas/agent.schema.json",
+    "config:agentdef/schemas/manifest.schema.json"
+   ]
+  },
+  {
+   "order": 6,
+   "title": "Forward adapters: AgentDef to Claude",
+   "description": "adapters/_common.py's AgentDef loader class parses an agent directory once; adapters/claude/generate.py consumes it to render CLAUDE.md, including a new _mcp_section that renders MCP server/tool declarations.",
+   "nodeIds": [
+    "file:agentdef/adapters/_common.py",
+    "file:agentdef/adapters/claude/generate.py",
+    "config:agentdef/schemas/mcp.schema.json"
+   ]
+  },
+  {
+   "order": 7,
+   "title": "New adapters: Assistants and CrewAI",
+   "description": "Two adapters added since the last scan: assistants/generate.py produces an OpenAI Assistants API create payload (distinct from the plain-markdown openai/generate.py), and crewai/generate.py produces a CrewAI agent/crew scaffold.",
+   "nodeIds": [
+    "file:agentdef/adapters/assistants/generate.py",
+    "file:agentdef/adapters/crewai/generate.py"
+   ]
+  },
+  {
+   "order": 8,
+   "title": "Reverse importers: Claude back to AgentDef",
+   "description": "importers/_common.py holds shared parsing (frontmatter, markdown sections, persona/bullet extraction) and the AgentDefWriter builder. importers/claude/importer.py detects whether a Claude file was authentically third-party or previously generated by AgentDef itself (round-trip), using the new split_roundtrip_segments helper to correctly handle fenced code blocks in frontmatter.",
+   "nodeIds": [
+    "file:agentdef/importers/_common.py",
+    "file:agentdef/importers/claude/importer.py"
+   ]
+  },
+  {
+   "order": 9,
+   "title": "New importers: Cursor, CrewAI, Letta, Generic",
+   "description": "Four importers added since the last scan, expanding round-trip coverage and adding a generic Markdown fallback for frameworks without a dedicated importer.",
+   "nodeIds": [
+    "file:agentdef/importers/cursor/importer.py",
+    "file:agentdef/importers/crewai/importer.py",
+    "file:agentdef/importers/letta/importer.py",
+    "file:agentdef/importers/generic/importer.py"
+   ]
+  },
+  {
+   "order": 10,
+   "title": "Keeping outputs in sync",
+   "description": "sync.py implements `agentdef sync`, regenerating every framework output declared under manifest.yaml's `sync:` key in one command, with --check for CI drift detection.",
+   "nodeIds": [
+    "file:agentdef/sync.py"
+   ]
+  }
+ ]
+}

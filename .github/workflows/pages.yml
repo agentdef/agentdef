@@ -1,0 +1,53 @@
+name: Docs site + dashboard (GitHub Pages)
+
+# One Pages site: mkdocs at /, dashboard static build at /dashboard/.
+# One-time setup: repo Settings -> Pages -> Source: "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", "mkdocs.yml", "understand-dashboard/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build docs
+        run: |
+          pip install mkdocs-material
+          mkdocs build --strict --site-dir _site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Build dashboard
+        working-directory: understand-dashboard
+        run: |
+          npm ci
+          npx vite build --base=/agentdef/dashboard/ --outDir ../_site/dashboard --emptyOutDir
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

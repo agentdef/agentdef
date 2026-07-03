@@ -1,0 +1,7 @@
+name: with-tools
+
+instructions:
+  - instructions/core.md
+
+tools:
+  - tools/search.yaml

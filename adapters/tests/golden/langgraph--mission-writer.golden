@@ -1,0 +1,91 @@
+"""
+mission-writer — LangGraph Agent
+
+Generated from AgentDef. Customize the node implementations.
+"""
+
+from typing import TypedDict
+
+from langgraph.graph import StateGraph, END
+
+
+# --- State ---
+
+class AgentState(TypedDict):
+    """State passed between graph nodes."""
+    input: str
+    output: str
+    context: dict
+
+
+SYSTEM_PROMPT = """You are a structured documentation agent specialized in converting vague task descriptions into well-defined, actionable mission documents."""
+
+
+# --- Nodes ---
+
+def input_analysis(state: AgentState) -> AgentState:
+    """TODO: Implement input_analysis logic."""
+    return state
+
+
+def clarification_check(state: AgentState) -> AgentState:
+    """TODO: Implement clarification_check logic."""
+    return state
+
+
+def structure_drafting(state: AgentState) -> AgentState:
+    """TODO: Implement structure_drafting logic."""
+    return state
+
+
+def gap_filling(state: AgentState) -> AgentState:
+    """TODO: Implement gap_filling logic."""
+    return state
+
+
+def review_and_polish(state: AgentState) -> AgentState:
+    """TODO: Implement review_and_polish logic."""
+    return state
+
+
+def final_output(state: AgentState) -> AgentState:
+    """TODO: Implement final_output logic."""
+    return state
+
+
+def mission_author(state: AgentState) -> AgentState:
+    """Skill: mission_author. TODO: Implement."""
+    return state
+
+
+# --- Graph ---
+
+def build_graph() -> StateGraph:
+    """Construct the agent execution graph."""
+    graph = StateGraph(AgentState)
+
+    graph.add_node("input_analysis", input_analysis)
+    graph.add_node("clarification_check", clarification_check)
+    graph.add_node("structure_drafting", structure_drafting)
+    graph.add_node("gap_filling", gap_filling)
+    graph.add_node("review_and_polish", review_and_polish)
+    graph.add_node("final_output", final_output)
+    graph.add_node("mission_author", mission_author)
+
+    graph.set_entry_point("input_analysis")
+    graph.add_edge("input_analysis", "clarification_check")
+    graph.add_edge("clarification_check", "structure_drafting")
+    graph.add_edge("structure_drafting", "gap_filling")
+    graph.add_edge("gap_filling", "review_and_polish")
+    graph.add_edge("review_and_polish", "final_output")
+    graph.add_edge("final_output", "mission_author")
+    graph.add_edge("mission_author", END)
+
+    return graph
+
+
+if __name__ == "__main__":
+    g = build_graph()
+    app = g.compile()
+    result = app.invoke({"input": "", "output": "", "context": {}})
+    print(result["output"])

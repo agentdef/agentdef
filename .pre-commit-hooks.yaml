@@ -1,0 +1,15 @@
+- id: agentdef-validate
+  name: agentdef validate
+  description: Validate AgentDef agent directories touched by the commit.
+  entry: agentdef validate
+  language: python
+  pass_filenames: false
+  args: [".agentdef"]  # override in your repo's .pre-commit-config.yaml
+  additional_dependencies: []
+- id: agentdef-sync-check
+  name: agentdef sync --check
+  description: Fail when generated framework files are stale.
+  entry: agentdef sync
+  language: python
+  pass_filenames: false
+  args: [".agentdef", "--check"]

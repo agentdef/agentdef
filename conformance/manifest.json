@@ -1,0 +1,317 @@
+[
+  {
+    "kind": "valid",
+    "slug": "minimal",
+    "rule": null,
+    "code": null,
+    "note": "smallest conforming agent"
+  },
+  {
+    "kind": "valid",
+    "slug": "spec-version-01",
+    "rule": null,
+    "code": null,
+    "note": "explicit spec_version 0.1"
+  },
+  {
+    "kind": "valid",
+    "slug": "spec-version-05",
+    "rule": null,
+    "code": null,
+    "note": "explicit spec_version 0.5"
+  },
+  {
+    "kind": "valid",
+    "slug": "with-skills",
+    "rule": null,
+    "code": null,
+    "note": "skills directory declared and present"
+  },
+  {
+    "kind": "valid",
+    "slug": "with-workflows",
+    "rule": null,
+    "code": null,
+    "note": "workflow file declared and present"
+  },
+  {
+    "kind": "valid",
+    "slug": "with-tools",
+    "rule": null,
+    "code": null,
+    "note": "tools file declared and present"
+  },
+  {
+    "kind": "valid",
+    "slug": "multi-instructions",
+    "rule": null,
+    "code": null,
+    "note": "several instruction files"
+  },
+  {
+    "kind": "valid",
+    "slug": "custom-directory",
+    "rule": null,
+    "code": null,
+    "note": "unrecognized directory must be ignored (S11)"
+  },
+  {
+    "kind": "valid",
+    "slug": "custom-manifest-fields",
+    "rule": null,
+    "code": null,
+    "note": "x- prefixed custom fields must be accepted (S11)"
+  },
+  {
+    "kind": "valid",
+    "slug": "role-h1",
+    "rule": null,
+    "code": null,
+    "note": "Role as an H1 header is accepted"
+  },
+  {
+    "kind": "valid",
+    "slug": "role-lowercase",
+    "rule": null,
+    "code": null,
+    "note": "role section header is case-insensitive"
+  },
+  {
+    "kind": "valid",
+    "slug": "unicode-content",
+    "rule": null,
+    "code": null,
+    "note": "non-ASCII content everywhere"
+  },
+  {
+    "kind": "valid",
+    "slug": "optional-dirs-present",
+    "rule": null,
+    "code": null,
+    "note": "knowledge/, memory/, runtime/, evals/ present but undeclared"
+  },
+  {
+    "kind": "valid",
+    "slug": "description-and-version",
+    "rule": null,
+    "code": null,
+    "note": "optional schema fields used"
+  },
+  {
+    "kind": "valid",
+    "slug": "capabilities-and-inputs",
+    "rule": null,
+    "code": null,
+    "note": "capabilities/input_types optional fields"
+  },
+  {
+    "kind": "valid",
+    "slug": "nested-instructions",
+    "rule": null,
+    "code": null,
+    "note": "instruction file in a subdirectory"
+  },
+  {
+    "kind": "valid",
+    "slug": "readme-present",
+    "rule": null,
+    "code": null,
+    "note": "README.md alongside required files"
+  },
+  {
+    "kind": "valid",
+    "slug": "deep-skill-tree",
+    "rule": null,
+    "code": null,
+    "note": "skill with examples subdirectory"
+  },
+  {
+    "kind": "valid",
+    "slug": "crlf-line-endings",
+    "rule": null,
+    "code": null,
+    "note": "CRLF files are fine"
+  },
+  {
+    "kind": "valid",
+    "slug": "large-core",
+    "rule": null,
+    "code": null,
+    "note": "large core.md"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule1-agent-md-absent",
+    "rule": 1,
+    "code": "missing-agent-md",
+    "note": "no agent.md at root"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule1-role-absent",
+    "rule": 1,
+    "code": "missing-role",
+    "note": "agent.md without Role section"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule1-role-not-a-header",
+    "rule": 1,
+    "code": "missing-role",
+    "note": "the word Role appears only in prose"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule1-role-h3",
+    "rule": 1,
+    "code": "missing-role",
+    "note": "### Role (level 3) is not a recognized Role section"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule2-missing-manifest",
+    "rule": 2,
+    "code": "missing-manifest",
+    "note": "no manifest.yaml"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule2-manifest-not-mapping",
+    "rule": 2,
+    "code": "invalid-yaml",
+    "note": "manifest.yaml is a YAML list, not a mapping"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule2-name-missing",
+    "rule": 2,
+    "code": "schema-violation",
+    "note": "manifest lacks required name"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule2-instructions-missing",
+    "rule": 2,
+    "code": "schema-violation",
+    "note": "manifest lacks required instructions list"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule2-instructions-empty",
+    "rule": 2,
+    "code": "schema-violation",
+    "note": "instructions list is empty"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule3-core-missing",
+    "rule": 3,
+    "code": "missing-core-instructions",
+    "note": "instructions/core.md absent"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule3-no-instructions-dir",
+    "rule": 3,
+    "code": "missing-core-instructions",
+    "note": "whole instructions/ dir absent"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule4-missing-instruction-ref",
+    "rule": 4,
+    "code": "missing-reference",
+    "note": "manifest references a nonexistent instruction file"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule4-missing-workflow-ref",
+    "rule": 4,
+    "code": "missing-reference",
+    "note": "manifest references a nonexistent workflow"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule4-missing-skill-dir",
+    "rule": 4,
+    "code": "missing-reference",
+    "note": "manifest references a nonexistent skill directory"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule4-missing-tool-ref",
+    "rule": 4,
+    "code": "missing-reference",
+    "note": "manifest references a nonexistent tool file"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule5-parent-escape",
+    "rule": 5,
+    "code": "reference-escapes-root",
+    "note": "reference climbs out with ../"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule5-absolute-path",
+    "rule": 5,
+    "code": "reference-escapes-root",
+    "note": "reference is an absolute path"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule6-name-not-string",
+    "rule": 6,
+    "code": "schema-violation",
+    "note": "name has the wrong type"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule6-instructions-not-list",
+    "rule": 6,
+    "code": "schema-violation",
+    "note": "instructions is a string, not a list"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule6-skills-not-list",
+    "rule": 6,
+    "code": "schema-violation",
+    "note": "skills is a mapping, not a list"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule6-description-not-string",
+    "rule": 6,
+    "code": "schema-violation",
+    "note": "description has the wrong type"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule7-spec-version-unknown",
+    "rule": 7,
+    "code": "unsupported-spec-version",
+    "note": "spec_version from the future"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule7-spec-version-garbage",
+    "rule": 7,
+    "code": "unsupported-spec-version",
+    "note": "spec_version is not a version at all"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule2-invalid-yaml-syntax",
+    "rule": 2,
+    "code": "invalid-yaml",
+    "note": "manifest.yaml is not parseable YAML"
+  },
+  {
+    "kind": "invalid",
+    "slug": "rule1-agent-md-empty",
+    "rule": 1,
+    "code": "missing-role",
+    "note": "agent.md exists but is empty"
+  }
+]

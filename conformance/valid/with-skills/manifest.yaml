@@ -1,0 +1,7 @@
+name: with-skills
+
+instructions:
+  - instructions/core.md
+
+skills:
+  - skills/summarize

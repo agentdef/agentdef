@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentdef.org/schemas/agent.schema.json",
+  "title": "AgentDef Agent Identity (Descriptive)",
+  "description": "Descriptive schema documenting the expected markdown sections in agent.md. This schema is NOT consumed by the validator — it exists as a reference for tooling authors. The validator checks for the required Role section by parsing the markdown directly.",
+  "type": "object",
+  "properties": {
+    "sections": {
+      "type": "object",
+      "description": "Expected top-level markdown sections in agent.md.",
+      "properties": {
+        "role": {
+          "type": "string",
+          "description": "The agent's role description. Required."
+        },
+        "objectives": {
+          "type": "array",
+          "description": "List of agent objectives.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "style": {
+          "type": "array",
+          "description": "Communication style traits.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "priorities": {
+          "type": "array",
+          "description": "Ordered list of priorities.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "avoid": {
+          "type": "array",
+          "description": "Anti-patterns the agent should avoid.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["role"]
+    }
+  },
+  "additionalProperties": true,
+  "_validation_notes": {
+    "description": "agent.md is primarily a markdown file. This schema defines the expected structure for tooling that parses it. The validator checks for the presence of a Role section in the markdown content rather than validating YAML frontmatter."
+  }
+}

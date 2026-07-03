@@ -1,0 +1,22 @@
+name: mission-writer
+
+instructions:
+  - instructions/core.md
+  - instructions/output-template.md
+
+workflows:
+  - workflows/mission_write.md
+
+skills:
+  - skills/mission-author
+
+input_types:
+  - text_description
+  - conversation_transcript
+  - requirements_document
+
+capabilities:
+  - structured_writing
+  - requirements_extraction
+  - scope_definition
+  - success_criteria_generation

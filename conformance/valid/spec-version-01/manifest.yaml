@@ -1,0 +1,5 @@
+name: sv01
+
+instructions:
+  - instructions/core.md
+spec_version: '0.1'

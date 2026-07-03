@@ -1,0 +1,4 @@
+name: unicode
+
+instructions:
+  - instructions/core.md

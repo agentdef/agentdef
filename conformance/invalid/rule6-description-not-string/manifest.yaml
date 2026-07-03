@@ -1,0 +1,6 @@
+name: x
+
+instructions:
+  - instructions/core.md
+
+description: 42

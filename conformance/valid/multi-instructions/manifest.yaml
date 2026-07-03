@@ -1,0 +1,6 @@
+name: multi
+
+instructions:
+  - instructions/core.md
+  - instructions/safety.md
+  - instructions/style.md

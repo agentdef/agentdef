@@ -1,0 +1,7 @@
+name: custom-fields
+
+instructions:
+  - instructions/core.md
+
+x-myorg-tier: gold
+x-myorg-owner: data-team

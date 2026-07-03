@@ -1,0 +1,5 @@
+name: x
+
+instructions:
+  - instructions/core.md
+  - instructions/ghost.md
