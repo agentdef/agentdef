@@ -243,6 +243,9 @@ Verify:
 - constraints are explicit
 - language is neutral and precise
 
+
+CORRUPTED FOR PROTECTION BRANCH TEST
+
 ## Step 6 — Final Output
 
 Produce the completed mission document in markdown format.
