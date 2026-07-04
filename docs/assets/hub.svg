@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" font-family="-apple-system,'Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="ain" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6d5ae0"/></marker>
+    <marker id="aout" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2da160"/></marker>
+  </defs>
+
+  <!-- LEFT: import from anywhere -->
+  <text x="150" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#6d5ae0">IMPORT FROM ANYWHERE</text>
+  <text x="150" y="44" text-anchor="middle" font-size="11" fill="#8a8f98">agentdef import &lt;framework&gt;</text>
+  <g font-size="12.5" fill="#24292f">
+    <g transform="translate(30,56)">
+      <rect width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="19">CLAUDE.md · Claude Code subagents</text>
+      <rect y="38" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="57">copilot-instructions.md · *.agent.md</text>
+      <rect y="76" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="95">Copilot Studio agent docs</text>
+      <rect y="114" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="133">declarativeAgent.json (M365)</text>
+      <rect y="152" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="171">.cursor/rules/*.mdc · .cursorrules</text>
+      <rect y="190" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="209">AGENTS.md (agents.md convention)</text>
+      <rect y="228" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="247">CrewAI agents.yaml / crew.yaml</text>
+      <rect y="266" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="285">Letta .af (behavior subset)</text>
+      <rect y="304" width="240" height="30" rx="6" fill="#f6f5ff" stroke="#c9c2f2"/><text x="12" y="323">any markdown prompt / persona</text>
+    </g>
+  </g>
+
+  <!-- arrows in -->
+  <g stroke="#6d5ae0" stroke-width="1.6" fill="none" opacity="0.85">
+    <path d="M274,71 C330,71 330,175 388,196" marker-end="url(#ain)"/>
+    <path d="M274,109 C330,109 330,185 388,201" marker-end="url(#ain)"/>
+    <path d="M274,147 C330,147 335,196 388,207" marker-end="url(#ain)"/>
+    <path d="M274,185 C330,185 335,205 388,213" marker-end="url(#ain)"/>
+    <path d="M274,223 C330,223 335,222 388,220" marker-end="url(#ain)"/>
+    <path d="M274,261 C330,261 335,235 388,226" marker-end="url(#ain)"/>
+    <path d="M274,299 C330,299 330,248 388,233" marker-end="url(#ain)"/>
+    <path d="M274,337 C330,337 330,260 388,240" marker-end="url(#ain)"/>
+    <path d="M274,375 C335,375 335,272 388,247" marker-end="url(#ain)"/>
+  </g>
+
+  <!-- CENTER: canonical directory -->
+  <g transform="translate(392,128)">
+    <rect width="180" height="188" rx="12" fill="#ffffff" stroke="#6d5ae0" stroke-width="2"/>
+    <text x="90" y="26" text-anchor="middle" font-size="13.5" font-weight="700" fill="#4636b8">my-agent/</text>
+    <g font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="12" fill="#24292f">
+      <text x="16" y="50">├─ agent.md</text>
+      <text x="16" y="70">├─ manifest.yaml</text>
+      <text x="16" y="90">└─ instructions/</text>
+      <text x="30" y="110">└─ core.md</text>
+    </g>
+    <g font-size="10.5" fill="#6b7280">
+      <text x="16" y="136">+ skills/ workflows/ tools/</text>
+      <text x="16" y="151">+ knowledge/ runtime/ evals/</text>
+    </g>
+    <text x="90" y="176" text-anchor="middle" font-size="11" font-weight="600" fill="#4636b8">one canonical definition</text>
+  </g>
+  <text x="482" y="112" text-anchor="middle" font-size="13" font-weight="700" fill="#24292f">AGENTDEF</text>
+  <text x="482" y="340" text-anchor="middle" font-size="10.5" fill="#6b7280">validated · versionable · byte-identical round-trips</text>
+
+  <!-- arrows out -->
+  <g stroke="#2da160" stroke-width="1.6" fill="none" opacity="0.9">
+    <path d="M576,196 C630,175 630,78 686,78" marker-end="url(#aout)"/>
+    <path d="M576,203 C630,190 630,116 686,116" marker-end="url(#aout)"/>
+    <path d="M576,210 C630,200 635,154 686,154" marker-end="url(#aout)"/>
+    <path d="M576,217 C630,212 635,192 686,192" marker-end="url(#aout)"/>
+    <path d="M576,224 C630,224 635,230 686,230" marker-end="url(#aout)"/>
+    <path d="M576,231 C630,236 635,268 686,268" marker-end="url(#aout)"/>
+    <path d="M576,238 C630,250 630,306 686,306" marker-end="url(#aout)"/>
+    <path d="M576,245 C630,264 630,344 686,344" marker-end="url(#aout)"/>
+  </g>
+
+  <!-- RIGHT: adapt to any platform -->
+  <text x="808" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#2da160">ADAPT TO ANY PLATFORM</text>
+  <text x="808" y="44" text-anchor="middle" font-size="11" fill="#8a8f98">agentdef adapt &lt;framework&gt;</text>
+  <g font-size="12.5" fill="#24292f">
+    <g transform="translate(690,63)">
+      <rect width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="19">CLAUDE.md (Claude / Claude Code)</text>
+      <rect y="38" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="57">copilot-instructions.md</text>
+      <rect y="76" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="95">cursor-rules.md</text>
+      <rect y="114" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="133">AGENTS.md</text>
+      <rect y="152" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="171">declarativeAgent.json (M365)</text>
+      <rect y="190" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="209">OpenAI Assistants payload</text>
+      <rect y="228" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="247">crew.yaml (CrewAI)</text>
+      <rect y="266" width="236" height="30" rx="6" fill="#f2fbf5" stroke="#bfe6cd"/><text x="12" y="285">graph.py (LangGraph scaffold)</text>
+    </g>
+  </g>
+</svg>

@@ -4,6 +4,8 @@ repo_url: https://github.com/agentdef/agentdef
 docs_dir: docs
 theme:
   name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
 nav:
   - Home: index.md
   - Getting started: getting-started.md

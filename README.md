@@ -1,12 +1,12 @@
-# AgentDef — Portable AI Agent Definitions
+<p align="center">
+  <img src="docs/assets/hero.png" alt="AgentDef - define once, import anything, adapt everywhere: nine import formats converge into one canonical agent directory and adapt out to eight platforms" width="820">
+</p>
 
-> Define your agent once. Run it on any framework.
-
-Every AI platform invents its own way to define agents — `CLAUDE.md`,
+Every AI platform invents its own way to define agents - `CLAUDE.md`,
 `AGENTS.md`, `cursor-rules.md`, `copilot-instructions.md`, declarative
 manifests... The concepts are always the same; only the files differ.
-AgentDef is an open specification that captures what an agent IS —
-identity, instructions, skills, workflows, tools — in one canonical,
+AgentDef is an open specification that captures what an agent IS -
+identity, instructions, skills, workflows, tools - in one canonical,
 human-readable directory. **Adapters** generate the file each platform
 wants; **importers** convert your existing files back into the canonical
 form ([505 real community agents imported with zero failures](https://agentdef.github.io/agentdef/scorecard/)).
@@ -14,9 +14,9 @@ form ([505 real community agents imported with zero failures](https://agentdef.g
 ## Quick Start
 
 An AgentDef agent is just a directory. The spec defines canonical
-components — `agent.md` (identity), `manifest.yaml` (composition),
+components - `agent.md` (identity), `manifest.yaml` (composition),
 `instructions/`, and optionally `skills/`, `workflows/`, `tools/`,
-`knowledge/`, `memory/`, `runtime/`, `evals/` — everything is plain
+`knowledge/`, `memory/`, `runtime/`, `evals/` - everything is plain
 markdown and YAML, made to live in git.
 
 The smallest valid agent:
@@ -29,14 +29,18 @@ my-agent/
     └── core.md       # How does it behave?
 ```
 
-Copy the [starter template](templates/starter) and fill in your content —
+Copy the [starter template](templates/starter) and fill in your content -
 or let `agentdef init` do it for you:
 
 ## CLI
 
+Install AgentDef:
+
 ```bash
 pip install agentdef
 ```
+
+**8 adapters** (Claude, OpenAI AGENTS.md, Cursor, GitHub Copilot, LangGraph, M365 Copilot, OpenAI Assistants, CrewAI). **9 importers** (those plus Copilot Studio, Letta `.af`, and any markdown prompt file). 
 
 ```bash
 agentdef init my-agent --yes                 # scaffold a valid agent
@@ -47,10 +51,8 @@ agentdef sync ./my-agent/                    # regenerate all configured framewo
 agentdef list                                # every adapter/importer framework
 ```
 
-8 adapters (Claude, OpenAI AGENTS.md, Cursor, GitHub Copilot, LangGraph,
-M365 Copilot, OpenAI Assistants, CrewAI) · 9 importers (those plus Copilot
-Studio, Letta `.af`, and any markdown prompt file). Every import writes an
-`IMPORT_REPORT.md`: what mapped, what was inferred, what was dropped —
+Every import writes an
+`IMPORT_REPORT.md`: what mapped, what was inferred, what was dropped -
 nothing is dropped silently.
 
 ## Take the tour
@@ -58,9 +60,9 @@ nothing is dropped silently.
 Explore this repo's own architecture as an interactive knowledge graph,
 with a guided 10-step walkthrough of the codebase:
 
-[![AgentDef architecture dashboard — interactive knowledge graph with a guided project tour](docs/assets/agentdef-tour.jpg)](https://agentdef.github.io/agentdef/dashboard/)
+[![AgentDef architecture dashboard - interactive knowledge graph with a guided project tour](docs/assets/agentdef-tour.jpg)](https://agentdef.github.io/agentdef/dashboard/)
 
-**[▶ Open the live dashboard](https://agentdef.github.io/agentdef/dashboard/)** —
+**[▶ Open the live dashboard](https://agentdef.github.io/agentdef/dashboard/)** -
 generated from the code itself with the **understand-anything** plugin, so
 it can't silently go stale.
 
@@ -68,15 +70,15 @@ it can't silently go stale.
 
 Full docs: **https://agentdef.github.io/agentdef/**
 
-- [Getting started](https://agentdef.github.io/agentdef/getting-started/) — first agent, validate, adapt, sync
-- [Migrate in 5 minutes](https://agentdef.github.io/agentdef/migrations/claude/) — from CLAUDE.md, Copilot, Cursor, AGENTS.md, or any prompt file
-- [Examples](examples/) — including a [real end-to-end demo](examples/claude-to-copilot-demo/) (Claude subagent → AgentDef → Copilot)
-- [Importer scorecard](https://agentdef.github.io/agentdef/scorecard/) · [Comparisons](https://agentdef.github.io/agentdef/comparisons/) · [FAQ](https://agentdef.github.io/agentdef/faq/)
-- [Specification](spec/SPEC.md) — spec 0.5, with a public [conformance corpus](conformance/)
+- [Getting started](https://agentdef.github.io/agentdef/getting-started/) - first agent, validate, adapt, sync
+- [Migrate in 5 minutes](https://agentdef.github.io/agentdef/migrations/claude/) - from CLAUDE.md, Copilot, Cursor, AGENTS.md, or any prompt file
+- [Examples](examples/) - including a [real end-to-end demo](examples/claude-to-copilot-demo/) (Claude subagent → AgentDef → Copilot)
+- [Importer scorecard](https://agentdef.github.io/agentdef/scorecard/) - [Comparisons](https://agentdef.github.io/agentdef/comparisons/) - [FAQ](https://agentdef.github.io/agentdef/faq/)
+- [Specification](spec/SPEC.md) - spec 0.5, with a public [conformance corpus](conformance/)
 
 ## Status
 
-**Spec 0.5.0 · tooling 0.2.0** — see [STATUS](docs/STATUS.md) and the
+**Spec 0.5.0 - tooling 0.2.0** - see [STATUS](docs/STATUS.md) and the
 [ROADMAP](ROADMAP.md). The format is stable enough for experimentation and
 feedback; breaking changes are possible before 1.0.
 
@@ -87,4 +89,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Want a framework we don't cover?
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
+Apache 2.0 - see [LICENSE](LICENSE).
