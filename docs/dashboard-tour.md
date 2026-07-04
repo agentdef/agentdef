@@ -1,5 +1,7 @@
 # Exploring AgentDef Visually: The Dashboard Tour
 
+[![AgentDef architecture dashboard](assets/agentdef-tour.jpg)](https://agentdef.github.io/agentdef/dashboard/)
+
 > **[▶ Open the live dashboard](https://agentdef.github.io/agentdef/dashboard/)** — no install needed. What follows explains what you are looking at and how to run it locally.
 
 > **Current (2026-07-04):** the scan was regenerated against the post-refactor package (`pysrc/agentdef/` — registry, cli, sync, init all present). The dashboard source ships in the repo; a static build is deployed to GitHub Pages at `/dashboard/` by `.github/workflows/pages.yml`. For local use: `npm install && npm run dev` (the dev server prints a one-time access token — put it in the URL).

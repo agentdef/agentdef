@@ -1,24 +1,23 @@
 # AgentDef — Portable AI Agent Definitions
 
-> **Renamed:** this project was **Agentfile** until 2026-07-03; it is now **AgentDef** (`agentdef`) per the availability study in [the naming study](docs/NAMING.md).
-
 > Define your agent once. Run it on any framework.
 
-AgentDef is an open specification for defining AI agents in a framework-independent, human-readable format.
-
-## The Problem
-
-Every AI framework invents its own way to define agents: Claude uses `CLAUDE.md`, OpenAI uses `AGENTS.md`, Cursor uses `cursor-rules.md`, Copilot uses `copilot-instructions.md`...
-
-The concepts are the same. The files are different.
-
-## The Solution
-
-AgentDef defines a canonical directory structure that captures what an agent IS — its identity, instructions, skills, workflows, memory, and tools — separate from HOW it runs.
-
-Framework adapters translate your agent definition into whatever format your target platform needs.
+Every AI platform invents its own way to define agents — `CLAUDE.md`,
+`AGENTS.md`, `cursor-rules.md`, `copilot-instructions.md`, declarative
+manifests... The concepts are always the same; only the files differ.
+AgentDef is an open specification that captures what an agent IS —
+identity, instructions, skills, workflows, tools — in one canonical,
+human-readable directory. **Adapters** generate the file each platform
+wants; **importers** convert your existing files back into the canonical
+form ([505 real community agents imported with zero failures](https://agentdef.github.io/agentdef/scorecard/)).
 
 ## Quick Start
+
+An AgentDef agent is just a directory. The spec defines canonical
+components — `agent.md` (identity), `manifest.yaml` (composition),
+`instructions/`, and optionally `skills/`, `workflows/`, `tools/`,
+`knowledge/`, `memory/`, `runtime/`, `evals/` — everything is plain
+markdown and YAML, made to live in git.
 
 The smallest valid agent:
 
@@ -30,7 +29,8 @@ my-agent/
     └── core.md       # How does it behave?
 ```
 
-Copy the [starter template](templates/starter/) and fill in your content.
+Copy the [starter template](templates/starter) and fill in your content —
+or let `agentdef init` do it for you:
 
 ## CLI
 
@@ -47,109 +47,43 @@ agentdef sync ./my-agent/                    # regenerate all configured framewo
 agentdef list                                # every adapter/importer framework
 ```
 
-The `agentdef` package is fully self-contained (adapters, importers,
-validator, and JSON Schemas ship inside the wheel). For development, use an
-editable install from a checkout: `pip install -e .`
-
-## Keep framework files in sync
-
-Declare targets once in `manifest.yaml`, then one command regenerates them all:
-
-```yaml
-sync:
-  - framework: claude
-    output: framework/claude/CLAUDE.md
-  - framework: copilot
-    output: framework/copilot/copilot-instructions.md
-```
-
-```bash
-agentdef sync ./my-agent/          # regenerate
-agentdef sync ./my-agent/ --check  # CI drift check (exit 1 if stale)
-```
-
-## Validate
-
-```bash
-agentdef validate ./my-agent/
-```
-
-## Adapters
-
-Generate framework-specific files:
-
-```bash
-agentdef adapt claude ./my-agent/        # → CLAUDE.md
-agentdef adapt openai ./my-agent/        # → AGENTS.md
-agentdef adapt cursor ./my-agent/        # → cursor-rules.md
-agentdef adapt copilot ./my-agent/       # → copilot-instructions.md
-agentdef adapt langgraph ./my-agent/     # → graph.py (LangGraph scaffold)
-agentdef adapt m365copilot ./my-agent/   # → declarativeAgent.json
-agentdef adapt assistants ./my-agent/    # → OpenAI Assistants create payload
-agentdef adapt crewai ./my-agent/        # → crew.yaml (CrewAI agents+tasks)
-```
-
-Each adapter supports `--output <file>` to write to a specific path instead of stdout.
-
-## Import
-
-Go the other way: turn an existing framework agent definition into an
-AgentDef directory.
-
-```bash
-agentdef import claude CLAUDE.md --output ./my-agent          # also Claude Code subagents
-agentdef import copilot copilot-instructions.md -o ./my-agent # also *.agent.md
-agentdef import m365copilot declarativeAgent.json -o ./my-agent
-agentdef import copilotstudio agent-doc.md -o ./my-agent
-agentdef import cursor .cursor/rules/api.mdc -o ./my-agent    # also cursor-rules.md
-agentdef import openai AGENTS.md -o ./my-agent
-agentdef import crewai config/agents.yaml -o ./my-agent
-agentdef import letta agent.af -o ./my-agent                  # behavior subset
-agentdef import generic SYSTEM.md -o ./my-agent               # any prompt file
-```
-
-Each run writes an `IMPORT_REPORT.md` alongside the agent directory listing
-what mapped cleanly, what was inferred, and what was dropped. See
-[importers/](importers/) for details and the full mapping tables.
-
-## Examples
-
-- [Twitter Weekly Digest](examples/twitter-digest/) — editorial agent that turns saved tweets into weekly briefings
-- [Mission Writer](examples/mission-writer/) — structured documentation agent that converts vague requests into actionable mission briefs
-- [Claude → AgentDef → Copilot Demo](examples/claude-to-copilot-demo/) — a real, runnable end-to-end example: import a Claude Code subagent, validate it as AgentDef, adapt it to GitHub Copilot. Includes a visual walkthrough (`demo.html`).
+8 adapters (Claude, OpenAI AGENTS.md, Cursor, GitHub Copilot, LangGraph,
+M365 Copilot, OpenAI Assistants, CrewAI) · 9 importers (those plus Copilot
+Studio, Letta `.af`, and any markdown prompt file). Every import writes an
+`IMPORT_REPORT.md`: what mapped, what was inferred, what was dropped —
+nothing is dropped silently.
 
 ## Take the tour
 
-Explore this repo's own architecture as an interactive knowledge graph —
-adapters, importers, the CLI, and how they connect:
+Explore this repo's own architecture as an interactive knowledge graph,
+with a guided 10-step walkthrough of the codebase:
 
-- **Live:** https://agentdef.github.io/agentdef/dashboard/ (static build, deployed by CI)
-- **Locally:** `cd understand-dashboard && npm install && npm run dev` — see the [dashboard tour](docs/dashboard-tour.md)
+[![AgentDef architecture dashboard — interactive knowledge graph with a guided project tour](docs/assets/agentdef-tour.jpg)](https://agentdef.github.io/agentdef/dashboard/)
 
-The graph is generated from the code itself with the **understand-anything** plugin, so it can't silently go stale — regenerating it is a re-scan, not a redraw.
+**[▶ Open the live dashboard](https://agentdef.github.io/agentdef/dashboard/)** —
+generated from the code itself with the **understand-anything** plugin, so
+it can't silently go stale.
 
 ## Documentation
 
-- [Getting Started](docs/getting-started.md) — build your first agent, validate it, generate framework output
-- [Dashboard Tour](docs/dashboard-tour.md) — explore this repo's own architecture visually via the generated knowledge-graph dashboard
-- [FAQ](docs/faq.md)
-- [Comparisons](docs/comparisons.md) — how AgentDef relates to other agent-spec-shaped projects
-- [Design Rationale](docs/design-rationale.md)
-- [Azure Mapping](docs/azure-mapping.md)
+Full docs: **https://agentdef.github.io/agentdef/**
 
-## Specification
-
-Read the full spec: [spec/SPEC.md](spec/SPEC.md)
+- [Getting started](https://agentdef.github.io/agentdef/getting-started/) — first agent, validate, adapt, sync
+- [Migrate in 5 minutes](https://agentdef.github.io/agentdef/migrations/claude/) — from CLAUDE.md, Copilot, Cursor, AGENTS.md, or any prompt file
+- [Examples](examples/) — including a [real end-to-end demo](examples/claude-to-copilot-demo/) (Claude subagent → AgentDef → Copilot)
+- [Importer scorecard](https://agentdef.github.io/agentdef/scorecard/) · [Comparisons](https://agentdef.github.io/agentdef/comparisons/) · [FAQ](https://agentdef.github.io/agentdef/faq/)
+- [Specification](spec/SPEC.md) — spec 0.5, with a public [conformance corpus](conformance/)
 
 ## Status
 
-See **[STATUS](docs/STATUS.md)** for the live "what's done / what's next" picture.
-
-**Spec 0.5.0, tooling 0.2.0** — pre-release, feature-complete for v0.2.0; publication steps pending. Draft specification. The format is stable enough for experimentation and feedback. Breaking changes are possible before 1.0.
+**Spec 0.5.0 · tooling 0.2.0** — see [STATUS](docs/STATUS.md) and the
+[ROADMAP](ROADMAP.md). The format is stable enough for experimentation and
+feedback; breaking changes are possible before 1.0.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Want a framework we don't cover?
+[Open a framework request](https://github.com/agentdef/agentdef/issues/new?template=framework_request.md).
 
 ## License
 

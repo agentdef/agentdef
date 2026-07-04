@@ -7,7 +7,7 @@ This guide walks you through creating your first AgentDef agent, validating it, 
 - Python 3.11+
 - `pip install pyyaml jsonschema`
 
-Every command below has a raw-script form and an equivalent `agentdef` CLI form (`pip install -e .` from this directory first). This guide uses the raw scripts since they need no install step; see the [README](https://github.com/agentdef/agentdef/blob/main/README.md#cli) for the CLI.
+All commands use the `agentdef` CLI: `pip install agentdef` (or `pip install -e .` from a checkout).
 
 ## 1. Copy the Starter Template
 
@@ -191,3 +191,21 @@ This repo also ships an interactive knowledge-graph dashboard of its own archite
 - Browse the [examples](../examples/) for complete, realistic agents
 - Check the [FAQ](faq.md) for common questions
 - See [comparisons.md](comparisons.md) for how AgentDef relates to other frameworks and adapter-based tools
+
+## Keep framework files in sync
+
+Declare targets once in `manifest.yaml`, then one command regenerates them
+all — and `--check` keeps CI honest:
+
+```yaml
+sync:
+  - framework: claude
+    output: framework/claude/CLAUDE.md
+  - framework: copilot
+    output: framework/copilot/copilot-instructions.md
+```
+
+```bash
+agentdef sync ./my-agent/          # regenerate every configured file
+agentdef sync ./my-agent/ --check  # exit 1 if anything is stale (CI drift check)
+```
