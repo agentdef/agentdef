@@ -179,7 +179,7 @@ If you're starting from an existing `CLAUDE.md`, `.github/copilot-instructions.m
 agentdef import claude CLAUDE.md --output my-agent/
 ```
 
-This writes a conformant AgentDef directory plus an `IMPORT_REPORT.md` documenting what mapped cleanly, what was inferred, and what was dropped. Validate the result the same way as a hand-written agent (step 5 above). See [importers/](../importers/) for all four supported source frameworks.
+This writes a conformant AgentDef directory plus an `IMPORT_REPORT.md` documenting what mapped cleanly, what was inferred, and what was dropped. Validate the result the same way as a hand-written agent (step 5 above). See [importers/](https://github.com/agentdef/agentdef/blob/main/pysrc/agentdef/importers) for all four supported source frameworks.
 
 ## Explore the Codebase Visually
 
@@ -188,7 +188,7 @@ This repo also ships an interactive knowledge-graph dashboard of its own archite
 ## Next Steps
 
 - Read the [full specification](https://github.com/agentdef/agentdef/blob/main/spec/SPEC.md) for every field and module type
-- Browse the [examples](../examples/) for complete, realistic agents
+- Browse the [examples](https://github.com/agentdef/agentdef/blob/main/examples) for complete, realistic agents
 - Check the [FAQ](faq.md) for common questions
 - See [comparisons.md](comparisons.md) for how AgentDef relates to other frameworks and adapter-based tools
 

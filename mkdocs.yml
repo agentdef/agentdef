@@ -1,30 +1,76 @@
 site_name: AgentDef
 site_description: Portable, framework-agnostic AI agent definitions
+site_url: https://agentdef.github.io/agentdef/
 repo_url: https://github.com/agentdef/agentdef
+repo_name: agentdef/agentdef
 docs_dir: docs
+
 theme:
   name: material
   logo: assets/logo.png
   favicon: assets/logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.integrate
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.emoji
+
 nav:
   - Home: index.md
-  - Getting started: getting-started.md
-  - Migrations:
-      - CLAUDE.md: migrations/claude.md
-      - Copilot: migrations/copilot.md
-      - Cursor: migrations/cursor.md
-      - AGENTS.md: migrations/openai.md
-      - Any prompt file: migrations/generic.md
-  - Dashboard (live): https://agentdef.github.io/agentdef/dashboard/
-  - Scorecard: scorecard.md
-  - Gallery: gallery.md
-  - Comparisons: comparisons.md
-  - Design rationale: design-rationale.md
-  - FAQ: faq.md
-  - Azure mapping: azure-mapping.md
-  - Dashboard tour: dashboard-tour.md
+  - Get Started:
+      - Getting started: getting-started.md
+      - FAQ: faq.md
+  - Migrate:
+      - From CLAUDE.md: migrations/claude.md
+      - From GitHub Copilot: migrations/copilot.md
+      - From Cursor: migrations/cursor.md
+      - From AGENTS.md: migrations/openai.md
+      - From any prompt file: migrations/generic.md
+  - Reference:
+      - CLI & frameworks: cli.md
+      - Importer scorecard: scorecard.md
+      - Specification (GitHub): https://github.com/agentdef/agentdef/blob/main/spec/SPEC.md
+  - Architecture:
+      - Dashboard tour: dashboard-tour.md
+      - Live dashboard ↗: https://agentdef.github.io/agentdef/dashboard/
+      - Design rationale: design-rationale.md
+  - Ecosystem:
+      - Comparisons: comparisons.md
+      - Agent gallery: gallery.md
+      - Azure & Microsoft mapping: azure-mapping.md
   - Project:
       - Status: STATUS.md
-      - Tasks: TASKS.md
+      - Task list: TASKS.md
       - Releasing: RELEASING.md
       - Naming decision: NAMING.md
