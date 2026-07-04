@@ -62,7 +62,7 @@ agentdef adapt langgraph ./my-agent/    # → graph.py
 
 ### Can I use AgentDef with a framework that doesn't have an adapter?
 
-Yes. Writing an adapter is straightforward — read the AgentDef files, restructure the content into the target format. See `adapters/_common.py` for shared loading logic and any existing adapter as a template. Contributions of new adapters are welcome.
+Yes. Writing an adapter is straightforward — read the AgentDef files, restructure the content into the target format. See `pysrc/agentdef/adapters/_common.py` for shared loading logic and any existing adapter as a template. Contributions of new adapters are welcome.
 
 ### I already have agents defined in another framework. Do I have to rewrite them by hand?
 
@@ -72,7 +72,7 @@ No — use an importer to convert an existing framework file into an AgentDef di
 agentdef import claude CLAUDE.md --output ./my-agent
 ```
 
-Importers exist for Claude (`CLAUDE.md` and Claude Code subagent files), GitHub Copilot (`copilot-instructions.md` and custom `*.agent.md` agents), Microsoft 365 Copilot (`declarativeAgent.json`), and Microsoft Copilot Studio (agent docs). Each run produces an `IMPORT_REPORT.md` listing what mapped cleanly, what was inferred, and what was dropped as framework-specific — imports are best-effort, not lossless. See [importers/](../importers/) for details.
+Importers exist for Claude (`CLAUDE.md` and Claude Code subagent files), GitHub Copilot (`copilot-instructions.md` and custom `*.agent.md` agents), Microsoft 365 Copilot (`declarativeAgent.json`), Microsoft Copilot Studio (agent docs), Cursor (`.cursor/rules/*.mdc` and `cursor-rules.md`), OpenAI `AGENTS.md`, CrewAI (`agents.yaml`/`crew.yaml`), Letta (`.af`, behavior subset), and a generic importer for any markdown prompt file — run `agentdef list` for the current set. Each run produces an `IMPORT_REPORT.md` listing what mapped cleanly, what was inferred, and what was dropped as framework-specific — imports are best-effort, not lossless.
 
 ### Is there a single command-line tool, or do I have to call each script separately?
 
@@ -86,3 +86,11 @@ Markdown is human-readable, diffs cleanly in Git, and can be edited by people wh
 
 ### Why a directory structure instead of a single file?
 
+Because the parts change at different speeds and belong to different
+people. Identity (`agent.md`) is stable; behavioral rules
+(`instructions/`) evolve constantly; skills and workflows are reusable
+modules you may share across agents. Separate files mean clean Git diffs,
+per-file ownership, and modular reuse — a single file turns into one
+monolithic prompt where every change touches everything. The cost is low:
+the minimal agent is just three small files, and `agentdef init` scaffolds
+them for you.

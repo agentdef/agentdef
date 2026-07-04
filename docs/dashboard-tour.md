@@ -84,12 +84,10 @@ there's no manual diagram to maintain.
 
 ## Publishing a static build (optional, not yet done)
 
-`npm run build` produces a static bundle of the dashboard. If you want it
-browsable without cloning the repo (e.g. linked from the README or a docs
-site), that build could be hosted as a static artifact — but two things
-need attention first: the graph data would need to be baked into the build
-rather than read live from `.understand-anything/`, and the access-token
-gate in `vite.config.ts` is designed for local development, not public
-hosting, so it needs a config review before pointing an untrusted audience
-at a hosted copy. Treat this as a nice-to-have for after the first
-release, not a launch blocker — see `PUBLISHING.md` section 4a.
+This is already done: `.github/workflows/pages.yml` builds the dashboard
+with `VITE_DEMO_MODE=true` — the app's static demo mode, which skips the
+local dev-server token gate entirely and reads the graph baked into the
+build (`public/knowledge-graph.json`) — and deploys it to GitHub Pages at
+[/dashboard/](https://agentdef.github.io/agentdef/dashboard/) alongside
+this docs site. The token gate you see with `npm run dev` only exists for
+the local live-reading server.
