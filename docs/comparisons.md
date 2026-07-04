@@ -62,12 +62,14 @@ Without AgentDef, teams using multiple AI tools must maintain separate files wit
 
 Several other projects occupy similar or adjacent naming territory, and it's worth being direct about how this one differs rather than letting readers assume they're the same thing:
 
-- **Oracle's Open Agent Spec** (`pyagentspec`, github.com/oracle/agent-spec) is the closest conceptual neighbor: a framework-agnostic declarative language for defining agents and multi-agent systems, with a reference runtime (WayFlow) and adapters for several agent frameworks. The biggest practical difference is direction of travel: Oracle's tooling is primarily spec-to-runtime (define once, execute via WayFlow or an adapter). This project puts equal weight on the reverse direction — deterministic importers that turn an *existing* Claude, C
+- **Oracle's Open Agent Spec** (`pyagentspec`, github.com/oracle/agent-spec) is the closest conceptual neighbor: a framework-agnostic declarative language for defining agents and multi-agent systems, with a reference runtime (WayFlow) and adapters for several agent frameworks. The biggest practical difference is direction of travel: Oracle's tooling is primarily spec-to-runtime (define once, execute via WayFlow or an adapter). This project puts equal weight on the reverse direction — deterministic importers that turn an *existing* Claude, Copilot, Copilot Studio, M365, Cursor, CrewAI, or Letta definition into a canonical agent, with an item-by-item import report and round-trip guarantees tested against 500+ real community agents.
+- **prime-vector/open-agent-spec** and a handful of similar GitHub projects use the same phrase for early-stage declarative agent schemas; none pair the spec with working bidirectional tooling.
+- For the projects that share (or nearly share) this project's own former names — the two other **AgentSpec**s and the **Agentfile**s — see the dedicated section below.
 
 ## AgentDef vs Same-Named and Near-Named Projects
 
 Claims below were verified against each project's public README/docs on
-**2026-07-02** (naming study, see [../NAMING.md](https://github.com/agentdef/agentdef/blob/main/NAMING.md)) and re-checked
+**2026-07-02** (naming study, see [NAMING.md](NAMING.md)) and re-checked
 in part on **2026-07-03**. These projects are why this project is named
 AgentDef and not AgentSpec or Agentfile (both names it nearly carried).
 

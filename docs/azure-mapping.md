@@ -391,4 +391,13 @@ enterprise-agent/
 ├── evals/
 │
 └── framework/
-  
+    ├── copilotstudio/
+    │   └── agent-doc.md        # agentdef adapt copilotstudio (planned)
+    └── m365copilot/
+        └── declarativeAgent.json   # agentdef adapt m365copilot
+```
+
+Keep the canonical definition as the single source of truth and treat
+everything under `framework/` as generated output: declare the targets in
+a `sync:` block and let `agentdef sync --check` fail CI whenever a
+generated Microsoft-side file drifts from the definition.

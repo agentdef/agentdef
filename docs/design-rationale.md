@@ -60,4 +60,4 @@ AgentDef is not a platform. It does not host agents, provide APIs, or manage dep
 
 ## Influences
 
-AgentDef follows the precedent of specifications like OpenAPI (for APIs), JSON Schema (for data validation), and Dockerfile (for container definitions). Each of these succeeded by defining a portable format that multiple tools ca
+AgentDef follows the precedent of specifications like OpenAPI (for APIs), JSON Schema (for data validation), and Dockerfile (for container definitions). Each of these succeeded by defining a portable format that multiple tools can produce and consume, without owning the runtime that executes it. OpenAPI does not serve HTTP requests; Dockerfile does not run containers. AgentDef takes the same position for AI agents: the value lives in the shared format and the guarantees around it — validation, round-trips, import reports — not in yet another runtime.
