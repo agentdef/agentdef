@@ -2,7 +2,7 @@
 
 > **The single source of truth for "where are we".** Last updated: 2026-07-03.
 > If this file disagrees with PUBLISHING.md (a historical planning record),
-> this file wins. Last updated: 2026-07-04 (runbook steps 1–2 done).
+> this file wins. Last updated: 2026-07-04 (runbook steps 1–4 done; v0.2.0 live on PyPI).
 
 ## TL;DR
 
@@ -43,11 +43,10 @@ Steps 1–5 are one sitting (~1.5 h). **Follow RUNBOOK.md (maintainer-private) s
 2. ~~First CI run + branch protection~~ — **DONE 2026-07-04**: CI green,
    `main` protected by an Active ruleset (verified with a deliberately red
    PR, closed unmerged).
-3. **Configure PyPI Trusted Publishing** for `release.yml`
-   (RELEASING.md §1). ~10 min.
-4. **Tag `v0.2.0`** — cut CHANGELOG "Unreleased", push the tag, let CI
-   publish; verify `pip install agentdef` on a clean machine
-   (RELEASING.md §2). ~20 min.
+3. ~~PyPI Trusted Publishing~~ — **DONE 2026-07-04** (publisher:
+   agentdef/agentdef · release.yml · env `pypi`, tag-restricted to `v*`).
+4. ~~Release v0.2.0~~ — **DONE 2026-07-04**: published by CI via Trusted
+   Publishing; `pip install agentdef` → 0.2.0 verified end-to-end.
 5. **Register `agentdef` on npm** — still pending from the name
    registration (registration-guide, private, step 3). ~10 min.
 6. **Harvest corpora → 2,000+ agents** — from any machine with network:
@@ -81,4 +80,4 @@ marketplaces (maintainer sections in each `integrations/*/README.md`).
 | RUNBOOK.md *(private)* | Step-by-step checklist for the 8 steps; not in the public repo |
 | [NAMING.md](NAMING.md) | Decision record: why AgentDef |
 | PUBLISHING.md *(private)* | **Historical** planning doc; superseded by STATUS + RELEASING; not in the public repo |
-| [CHANGELOG.md](https://github.com/agentdef/agentdef/blob/main/CHANGELOG.md) | What changed, release by release |
+| [CHANGELOG.md](https://github.
