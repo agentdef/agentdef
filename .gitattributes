@@ -1,0 +1,4 @@
+# Conformance case that deliberately uses CRLF: never normalize it
+conformance/valid/crlf-line-endings/agent.md -text
+# Golden files compare byte-for-byte in tests: keep them exactly as committed
+tests/adapters/golden/*.golden -text
