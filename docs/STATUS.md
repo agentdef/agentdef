@@ -2,7 +2,7 @@
 
 > **The single source of truth for "where are we".** Last updated: 2026-07-03.
 > If this file disagrees with PUBLISHING.md (a historical planning record),
-> this file wins.
+> this file wins. Last updated: 2026-07-04 (runbook steps 1–2 done).
 
 ## TL;DR
 
@@ -37,10 +37,12 @@ Per-task detail with test evidence: [TASKS.md](TASKS.md) (✅/🟡/⬜ marks).
 Everything below needs your accounts, your network, or real humans.
 Steps 1–5 are one sitting (~1.5 h). **Follow RUNBOOK.md (maintainer-private) step by step** (checkboxes + verify checks); RELEASING.md has the underlying command reference.
 
-1. **Publish the repo** — push `agentdef/` as the root of
-   `github.com/agentdef/agentdef` (RELEASING.md §0). ~30 min.
-2. **Watch the first CI run** — the workflow has never executed remotely;
-   if the matrix goes green, enable branch protection requiring it. ~15 min.
+1. ~~Publish the repo~~ — **DONE 2026-07-04**: public at
+   [github.com/agentdef/agentdef](https://github.com/agentdef/agentdef),
+   Pages live (docs + dashboard).
+2. ~~First CI run + branch protection~~ — **DONE 2026-07-04**: CI green,
+   `main` protected by an Active ruleset (verified with a deliberately red
+   PR, closed unmerged).
 3. **Configure PyPI Trusted Publishing** for `release.yml`
    (RELEASING.md §1). ~10 min.
 4. **Tag `v0.2.0`** — cut CHANGELOG "Unreleased", push the tag, let CI

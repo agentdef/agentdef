@@ -44,7 +44,7 @@ Then in GitHub repo settings — in this order:
 3. Once green: branch protection on `main` — require the CI checks to pass
    before merge, and require a pull request.
 4. Verify the gate with a deliberate red PR (break one golden file in
-   `adapters/tests/golden/`), confirm merge is blocked, close the PR.
+   `tests/adapters/golden/`), confirm merge is blocked, close the PR.
 5. Settings → Environments → create `pypi` (used by release.yml).
 6. Settings → Pages → Source: **GitHub Actions** (used by pages.yml, which
    deploys the docs site + the architecture dashboard to
